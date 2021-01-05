@@ -42,16 +42,6 @@ class Reader:
 
         return response.json()
 
-    def _is_valid(self, ticker_url: str) -> str:
-        """
-        Runs a quick validity check for the passed Ticker.
-
-        If error is null, True is returned. Otherwise, False is returned and an error is thrown.
-
-        :param ticker_url -> ``str``: the URL of the ticker.
-        """
-        return requests.get(ticker_url).status_code != 404
-
     @property
     def build_equity_chart_url(self: Reader) -> str:
         """
@@ -66,7 +56,17 @@ class Reader:
         # TODO: this will be more robust based off args that can be passed via command-line
         result = base_chart_url + self.equity_to_search
 
-        if self._is_valid(result):
+        def is_valid(ticker_url: str) -> str:
+            """
+            Runs a quick validity check for the passed Ticker.
+
+            If error is null, True is returned. Otherwise, False is returned and an error is thrown.
+
+            :param ticker_url -> ``str``: the URL of the ticker.
+            """
+            return requests.get(ticker_url).status_code != 404
+
+        if is_valid(result):
             self.chart_url = result
             return True
         raise ValueError("Invalid Ticker Symbol Passed.")
@@ -85,7 +85,19 @@ class Reader:
         # TODO: this will be more robust based off args that can be passed via command-line
         result = base_quote_url + f"?symbols={self.equity_to_search}"
 
-        if self._is_valid(result):
+        def is_valid(ticker_url: str) -> str:
+            """
+            Runs a quick validity check for the passed Ticker.
+
+            If error is null, True is returned. Otherwise, False is returned and an error is thrown.
+
+            :param ticker_url -> ``str``: the URL of the ticker.
+            """
+            json_response = requests.get(ticker_url).json()
+
+            return json_response['quoteResponse']['result'] != []
+
+        if is_valid(result):
             self.quote_url = result
             return True
         raise ValueError("Invalid Ticker Symbol Passed.")
