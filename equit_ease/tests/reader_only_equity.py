@@ -17,7 +17,6 @@ class TestReaderMethodsOnly(unittest.TestCase):
         self.assertEqual(reader_upper.build_equity_url, full_url_two)
         self.assertNotEqual(reader_upper.build_equity_url, full_url_one)
 
-
     def test_build_url_for_fail(self):
         """test case #2 for build_equity_url_for() in reader/read.py -> throw error"""
         ticker_to_search = "XYZ"
