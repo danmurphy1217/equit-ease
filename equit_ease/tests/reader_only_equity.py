@@ -11,16 +11,16 @@ class TestReaderMethods(unittest.TestCase):
         ticker_to_search = "tsla"
         reader = Reader(ticker_to_search)
         reader_upper = Reader(ticker_to_search.upper())
-        
+
         full_url_one = Constants.yahoo_finance_base_chart_url + ticker_to_search
         # builds the URL and sets it as a class instance(!!!) attribute
         _ = reader.build_equity_chart_url
         self.assertEqual(reader.chart_url, full_url_one)
-        
+
         full_url_two = Constants.yahoo_finance_base_chart_url + ticker_to_search.upper()
         _ = reader_upper.build_equity_chart_url
         self.assertEqual(reader_upper.chart_url, full_url_two)
-        
+
         _ = reader_upper.build_equity_chart_url
         self.assertNotEqual(reader_upper.chart_url, full_url_one)
 
@@ -30,7 +30,7 @@ class TestReaderMethods(unittest.TestCase):
         with self.assertRaises(ValueError):
             reader = Reader(ticker_to_search)
             reader.build_equity_chart_url
-    
+
     def test_get_equity_chart_data_pass(self):
         """test case #1 for get_equity_chart_data() in reader/read.py -> pass"""
         ticker_to_search = "TSLA"
@@ -40,12 +40,14 @@ class TestReaderMethods(unittest.TestCase):
         equity_chart_data = reader.get_equity_chart_data()
 
         # check some of the response data...
-        self.assertEqual(list(equity_chart_data.keys()), ['chart'])
-        self.assertTrue(('result' and 'error') in equity_chart_data['chart'].keys())
-        self.assertTrue(( 'meta' and 'timestamp' and 'indicators') in equity_chart_data['chart']['result'][0].keys())
-        self.assertIsNone(equity_chart_data['chart']['error'])
+        self.assertEqual(list(equity_chart_data.keys()), ["chart"])
+        self.assertTrue(("result" and "error") in equity_chart_data["chart"].keys())
+        self.assertTrue(
+            ("meta" and "timestamp" and "indicators")
+            in equity_chart_data["chart"]["result"][0].keys()
+        )
+        self.assertIsNone(equity_chart_data["chart"]["error"])
 
-    
     # def test_get_equity_data_fail():
     #     """test case #2 for get_equity_chart_data() in reader/read.py -> fail"""
     #     return
@@ -59,10 +61,21 @@ class TestReaderMethods(unittest.TestCase):
         equity_quote_data = reader.get_equity_quote_data()
 
         # check some of the response data
-        self.assertEqual(list(equity_quote_data.keys()), ['quoteResponse'])
-        self.assertTrue( ('result' and 'error') in equity_quote_data['quoteResponse'].keys())
-        self.assertTrue( (
-            'regularMarketPreviousClose' and 'regularMarketPreviousOpen' and 'regularMarketVolume' and 'regularMarketDayLow' \
-                and 'regularMarketDayHigh' and 'fiftyDayAverage' and 'bid' and 'ask'
-            ) in equity_quote_data['quoteResponse']['result'][0].keys())
-        self.assertIsNone(equity_quote_data['quoteResponse']['error'])
+        self.assertEqual(list(equity_quote_data.keys()), ["quoteResponse"])
+        self.assertTrue(
+            ("result" and "error") in equity_quote_data["quoteResponse"].keys()
+        )
+        self.assertTrue(
+            (
+                "regularMarketPreviousClose"
+                and "regularMarketPreviousOpen"
+                and "regularMarketVolume"
+                and "regularMarketDayLow"
+                and "regularMarketDayHigh"
+                and "fiftyDayAverage"
+                and "bid"
+                and "ask"
+            )
+            in equity_quote_data["quoteResponse"]["result"][0].keys()
+        )
+        self.assertIsNone(equity_quote_data["quoteResponse"]["error"])

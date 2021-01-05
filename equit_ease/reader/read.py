@@ -9,7 +9,7 @@ class Reader:
     """
     The entrypoint for any submission; This class requests and reads data from two main Yahoo Finance endpoints: `quote` and `chart`.
 
-    There is no parsing, cleaning or structuring done in this class. It's only purpose is to validate the input, send a 
+    There is no parsing, cleaning or structuring done in this class. It's only purpose is to validate the input, send a
     request to an endpoint, verify the responses validity, and return it.
 
     This implementation follows the Builder design pattern, where the construction of a complex object is separated from its
@@ -25,10 +25,10 @@ class Reader:
         self.equity_to_search = equity_to_search
         self.date_range = date_range
         self.currency = currency
-    
-    def _get(self, y_finance_formatted_url : str) -> Dict[str, Any]:
+
+    def _get(self, y_finance_formatted_url: str) -> Dict[str, Any]:
         """
-        private method which sends the GET request to yahoo finance, 
+        private method which sends the GET request to yahoo finance,
         ensures the response is accurate, and, upon validation, returns it.
 
         :param y_finance_formatted_url -> ``str``: formatted Yahoo Finance URL (
@@ -39,9 +39,9 @@ class Reader:
         """
         response = requests.get(y_finance_formatted_url)
         response.raise_for_status()
-        
+
         return response.json()
-    
+
     def _is_valid(self, ticker_url: str) -> str:
         """
         Runs a quick validity check for the passed Ticker.
@@ -51,7 +51,6 @@ class Reader:
         :param ticker_url -> ``str``: the URL of the ticker.
         """
         return requests.get(ticker_url).status_code != 404
-
 
     @property
     def build_equity_chart_url(self: Reader) -> str:
@@ -71,14 +70,14 @@ class Reader:
             self.chart_url = result
             return True
         raise ValueError("Invalid Ticker Symbol Passed.")
-    
+
     @property
     def build_equity_quote_url(self: Reader) -> str:
         """
         Creates the equity quote URL for a given currency.
         This URL is then used for the retrieval of data-points pertaining to
         equity meta-data such as EPS, P/E ratio, 52 wk high and low, etc...
-        
+
         :param self -> ``Reader``:
         :returns -> ``str``: the formatted URL used to retrieve equity meta-data from yahoo finance.
         """
@@ -98,7 +97,7 @@ class Reader:
         :returns -> ``Dict[str, Any]``: JSON object response from Yahoo Finance
         """
         return self._get(self.chart_url)
-    
+
     def get_equity_quote_data(self: Reader) -> str:
         """
         calls the _get() private method.
