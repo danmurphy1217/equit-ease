@@ -23,6 +23,7 @@ class Reader:
         :returns -> ``str``: the formatted URL used to retrieve the equities data from yahoo finance.
         """
         base_url = Constants.yahoo_finance_base_chart_url
+        # TODO: this will be more robust based off args that can be passed via command-line
         result = base_url + self.equity_to_search
 
         def is_valid(ticker_url: str) -> str:
@@ -36,5 +37,9 @@ class Reader:
             return requests.get(ticker_url).status_code != 404
 
         if is_valid(result):
-            return result
+            self.url = result
+            return True
         raise ValueError("Invalid Ticker Symbol Passed.")
+
+    def get_equity_data(self):
+        return self.url

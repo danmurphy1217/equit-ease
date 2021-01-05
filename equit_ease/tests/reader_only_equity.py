@@ -11,11 +11,18 @@ class TestReaderMethodsOnly(unittest.TestCase):
         ticker_to_search = "tsla"
         reader = Reader(ticker_to_search)
         reader_upper = Reader(ticker_to_search.upper())
+        
         full_url_one = Constants.yahoo_finance_base_chart_url + ticker_to_search
-        self.assertEqual(reader.build_equity_url, full_url_one)
+        # builds the URL and sets it as a class instance(!!!) attribute
+        _ = reader.build_equity_url
+        self.assertEqual(reader.url, full_url_one)
+        
         full_url_two = Constants.yahoo_finance_base_chart_url + ticker_to_search.upper()
-        self.assertEqual(reader_upper.build_equity_url, full_url_two)
-        self.assertNotEqual(reader_upper.build_equity_url, full_url_one)
+        _ = reader_upper.build_equity_url
+        self.assertEqual(reader_upper.url, full_url_two)
+        
+        _ = reader_upper.build_equity_url
+        self.assertNotEqual(reader_upper.url, full_url_one)
 
     def test_build_url_for_fail(self):
         """test case #2 for build_equity_url_for() in reader/read.py -> throw error"""
