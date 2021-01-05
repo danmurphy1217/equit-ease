@@ -12,7 +12,8 @@ class Reader:
         self.date_range = date_range
         self.currency = currency
 
-    def build_equity_url_for(self) -> str:
+    @property
+    def build_equity_url(self) -> str:
         """
         Creates the equity backend URL (yahoo finance) for a given currency.
         This URL is then used for the retrieval of data-points pertaining to
@@ -26,7 +27,7 @@ class Reader:
 
         def is_valid(ticker_url: str) -> str:
             """
-            Runs a quick validity check for the passed Ticker. 
+            Runs a quick validity check for the passed Ticker.
 
             If error is null, True is returned. Otherwise, False is returned and an error is thrown.
 
