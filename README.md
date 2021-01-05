@@ -1,6 +1,6 @@
 # equit-ease
 
-Accessing up-to-date pricing, volume, and chart-based data for any valid company name or ticker symbol. This project is under rapid development and is updated daily. Release information will be specified in the coming weeks.
+Access up-to-date pricing, volume, and chart-based data for any valid company name or ticker symbol. This project is under rapid development and is updated daily. Release information will be specified in the coming weeks.
 
 This project is for you if:
 - you enjoy following the markets, and pay attention to how current events influence short-term pricing and volume
