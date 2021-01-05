@@ -1,0 +1,14 @@
+language: python
+python:
+  - "3.7"
+  - "3.8"
+  - "3.9"
+branches:
+  only:
+    - main
+    - /^add-.*$/
+    - /^deploy0.*$/
+install:
+  - pip install -r requirements.txt
+script:
+  - python3 run_tests.py
