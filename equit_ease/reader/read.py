@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Dict, Any
 import requests
 
-from equit_ease.utils.Constants import Constants
+from utils.Constants import Constants
 
 
 class Reader:
