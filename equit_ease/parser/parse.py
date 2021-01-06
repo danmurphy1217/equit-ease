@@ -68,7 +68,7 @@ class QuoteParser(Parser):
             keys_to_extract, json_data_for_extraction
         )
 
-        return json.dumps(equity_meta_data_struct)
+        return equity_meta_data_struct
 
 
 class ChartParser(Parser):
@@ -91,4 +91,4 @@ class ChartParser(Parser):
             keys_to_extract, json_data_for_extraction
         )
 
-        return json.dumps(equity_chart_data_struct)
+        return equity_chart_data_struct
