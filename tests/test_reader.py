@@ -1,4 +1,6 @@
 import unittest
+from requests.exceptions import HTTPError
+
 from equit_ease.reader.read import Reader
 from equit_ease.utils.Constants import Constants
 
@@ -6,7 +8,7 @@ from equit_ease.utils.Constants import Constants
 class TestReaderMethods(unittest.TestCase):
     # test the methods defined for the Reader class.
 
-    def test_build_equity_chart_url_for_pass(self):
+    def test_build_equity_chart_url_pass(self):
         """test case #1 for build_equity_chart_url() in reader/read.py -> pass"""
         ticker_to_search = "tsla"
         reader = Reader(ticker_to_search)
@@ -24,7 +26,7 @@ class TestReaderMethods(unittest.TestCase):
         _ = reader_upper.build_equity_chart_url
         self.assertNotEqual(reader_upper.chart_url, full_url_one)
 
-    def test_build_url_for_fail(self):
+    def test_build_url_fail(self):
         """test case #2 for build_equity_url_for() in reader/read.py -> throw error"""
         ticker_to_search = "XYZ"
         with self.assertRaises(ValueError):
@@ -48,9 +50,16 @@ class TestReaderMethods(unittest.TestCase):
         )
         self.assertIsNone(equity_chart_data["chart"]["error"])
 
-    # def test_get_equity_data_fail():
-    #     """test case #2 for get_equity_chart_data() in reader/read.py -> fail"""
-    #     return
+    def test_get_equity_chart_data_fail(self):
+        """test case #2 for get_equity_chart_data() in reader/read.py -> fail"""
+        ticker_to_search = "XYZ"
+        with self.assertRaises(ValueError):
+            reader = Reader(ticker_to_search)
+            reader.build_equity_chart_url
+
+            # shouldn't reach here, error is raised immediately
+            # after an incorrect equity ticker symbol is passed
+            equity_chart_data = reader.get_equity_chart_data()
 
     def test_get_equity_quote_data_pass(self):
         """test case #1 for get_equity_quote_data()"""
