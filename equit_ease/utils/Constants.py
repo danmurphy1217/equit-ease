@@ -42,7 +42,7 @@ class Constants:
         "earnings_report_date": "earningsTimestamp",
         "dividend_rate": "trailingAnnualDividendRate",
         "dividend_yield": "trailingAnnualDividendYield",
-        "next_dividend_date": "dividendDate"
+        "next_dividend_date": "dividendDate",
     }
 
     # def build_kw_args()

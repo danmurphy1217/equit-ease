@@ -41,10 +41,10 @@ class EquityMeta:
         self.volume_stats = {
             "regular_volume": self.market_volume,
             "three_month_volume": self.market_three_month_volume,
-            "ten_day_volume": self.market_ten_day_volume
+            "ten_day_volume": self.market_ten_day_volume,
         }
 
         self.trailing_and_forward_pe = {
             "trailing_pe": self.trailing_pe,
-            "forward_pe": self.forward_pe
+            "forward_pe": self.forward_pe,
         }
