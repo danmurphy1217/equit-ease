@@ -51,7 +51,7 @@ class TestReaderMethods(unittest.TestCase):
         self.assertIsNone(equity_chart_data["chart"]["error"])
 
     def test_get_equity_chart_data_fail(self):
-        """test case #2 for get_equity_chart_data() in reader/read.py -> fail"""
+        """test case #2 for get_equity_chart_data() in reader/read.py -> throw error"""
         ticker_to_search = "XYZ"
         with self.assertRaises(ValueError):
             reader = Reader(ticker_to_search)
@@ -59,10 +59,10 @@ class TestReaderMethods(unittest.TestCase):
 
             # shouldn't reach here, error is raised immediately
             # after an incorrect equity ticker symbol is passed
-            equity_chart_data = reader.get_equity_chart_data()
+            reader.get_equity_chart_data()
 
     def test_get_equity_quote_data_pass(self):
-        """test case #1 for get_equity_quote_data()"""
+        """test case #1 for get_equity_quote_data() -> pass"""
         ticker_to_search = "TSLA"
         reader = Reader(ticker_to_search)
         reader.build_equity_quote_url
@@ -88,3 +88,12 @@ class TestReaderMethods(unittest.TestCase):
             in equity_quote_data["quoteResponse"]["result"][0].keys()
         )
         self.assertIsNone(equity_quote_data["quoteResponse"]["error"])
+
+    def test_get_equity_quote_data_fail(self):
+        """test case #2 for get_equity_quote_data() -> throw error"""
+        ticker_to_search = "XYZ"
+        with self.assertRaises(ValueError):
+            reader = Reader(ticker_to_search)
+            reader.build_equity_quote_url
+
+            reader.get_equity_quote_data()
