@@ -67,25 +67,25 @@ class QuoteParser(Parser):
         equity_meta_data_struct = self._build_dict_repr(
             keys_to_extract, json_data_for_extraction
         )
-        
-        dataclass_kw_arg_names = list(y_finance_column_mappings.keys())
-        dataclass_kw_arg_vals = [equity_meta_data_struct[y_finance_column_mappings[key]] for key in dataclass_kw_arg_names]
 
-        print(EquityMeta(**dict(zip(dataclass_kw_arg_names, dataclass_kw_arg_vals))))
-
-
-        # return equity_meta_data_struct
+        return self._init_dataclass(y_finance_column_mappings, equity_meta_data_struct)
     
-    def _init_dataclass(self, finalized_data_struct: Dict[str, Any]) -> EquityMeta:
+    def _init_dataclass(self, column_mappings: List[str], finalized_data_struct: Dict[str, Any]) -> EquityMeta:
         """
-        initializes dataclass and return it
+        initializes EquityMeta dataclass and returns it
         
         :param self -> ``QuoteParser``:
         :param finalized_data_struct -> ``Dict[str, Any]``: the finalized data structure built from _build_dict_repr
 
-        :returns ``EquityMeta``: EquityMeta dataclass.
+        :returns result -> ``EquityMeta``: EquityMeta dataclass.
         """
+        dataclass_fields = dataclasses.fields(EquityMeta)
+        dataclass_kw_arg_names = [field.name for field in dataclass_fields]
+        dataclass_kw_arg_vals = [finalized_data_struct[column_mappings[key]] for key in dataclass_kw_arg_names]
 
+        result = EquityMeta(**dict(zip(dataclass_kw_arg_names, dataclass_kw_arg_vals))) # unpack key-value pairs into keyword args
+        
+        return result
 
 class ChartParser(Parser):
     """contains methods relating to the parsing of Yahoo Finance Chart data."""
