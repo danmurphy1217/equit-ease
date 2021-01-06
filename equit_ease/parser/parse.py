@@ -1,4 +1,5 @@
 from __future__ import annotations
+import dataclasses
 from typing import Dict, Any, List
 import json
 
@@ -45,8 +46,6 @@ class Parser(Reader):
             finalized_data_struct[key] = self._extract_data_from(data, key)
 
         return finalized_data_struct
-
-
 class QuoteParser(Parser):
     """contains methods relating to the parsing of Yahoo Finance Quote data."""
 
@@ -61,14 +60,31 @@ class QuoteParser(Parser):
         """
         equity_metadata = self.data
 
+        y_finance_column_mappings = Constants.yahoo_finance_column_mappings
         keys_to_extract = Constants.yahoo_finance_quote_keys
         json_data_for_extraction = equity_metadata["quoteResponse"]["result"][0]
 
         equity_meta_data_struct = self._build_dict_repr(
             keys_to_extract, json_data_for_extraction
         )
+        
+        dataclass_kw_arg_names = list(y_finance_column_mappings.keys())
+        dataclass_kw_arg_vals = [equity_meta_data_struct[y_finance_column_mappings[key]] for key in dataclass_kw_arg_names]
 
-        return equity_meta_data_struct
+        print(EquityMeta(**dict(zip(dataclass_kw_arg_names, dataclass_kw_arg_vals))))
+
+
+        # return equity_meta_data_struct
+    
+    def _init_dataclass(self, finalized_data_struct: Dict[str, Any]) -> EquityMeta:
+        """
+        initializes dataclass and return it
+        
+        :param self -> ``QuoteParser``:
+        :param finalized_data_struct -> ``Dict[str, Any]``: the finalized data structure built from _build_dict_repr
+
+        :returns ``EquityMeta``: EquityMeta dataclass.
+        """
 
 
 class ChartParser(Parser):

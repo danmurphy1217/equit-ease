@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Tuple, Dict
 
 
-@dataclass(frozen=True)
+@dataclass
 class EquityMeta:
     """
     Intermediary data structure utilized for the transportation of Equity Quote metadata
@@ -18,11 +18,14 @@ class EquityMeta:
     fifty_two_wk_range: Tuple[
         float, float
     ]  # low - high price for the stock [last year]
-    volume_stats: Dict[
-        str, float
-    ]  # intra_day volume, monthly avg. volume, and ten_day avg. volume
+
+    market_volume: int
+    market_three_month_volume: int
+    market_ten_day_volume: int
+    # intra_day volume, monthly avg. volume, and ten_day avg. volume
     market_cap: int  # stock price * shares outstanding
-    trailing_and_forward_pe: Dict[str, float]  # trailing and forward PE's
+    trailing_pe: float
+    forward_pe: float
     # trailing PE is current share price / EPS over the previous 12 months ||
     # forward PE is current share price / EPS estimation over next 12 months
 
@@ -33,3 +36,15 @@ class EquityMeta:
     next_dividend_date: int  # unix epoch time
 
     # TODO: beta
+
+    def __post_init__(self):
+        self.volume_stats = {
+            "regular_volume": self.market_volume,
+            "three_month_volume": self.market_three_month_volume,
+            "ten_day_volume": self.market_ten_day_volume
+        }
+
+        self.trailing_and_forward_pe = {
+            "trailing_pe": self.trailing_pe,
+            "forward_pe": self.forward_pe
+        }
