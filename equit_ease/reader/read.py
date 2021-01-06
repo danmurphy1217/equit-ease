@@ -95,7 +95,7 @@ class Reader:
             """
             json_response = requests.get(ticker_url).json()
 
-            return json_response['quoteResponse']['result'] != []
+            return json_response["quoteResponse"]["result"] != []
 
         if is_valid(result):
             self.quote_url = result
