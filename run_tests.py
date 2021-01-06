@@ -1,4 +1,4 @@
-from equit_ease.tests import reader_only_equity
+from tests import reader_only_equity
 import unittest
 from types import ModuleType
 
