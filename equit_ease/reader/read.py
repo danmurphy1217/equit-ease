@@ -41,6 +41,21 @@ class Reader:
 
         return response.json()
     
+    @staticmethod
+    def _extract_data_from(json_data: Dict[str, Any], key_to_extract: str) -> Any:
+        """
+        extract ``key_to_extract`` from ``json_data``
+
+        :param json_data -> ``Dict[str, Any]``: JSON response object from any GET /<yahoo_finance_endpoint> which returns JSON data.
+        :param key_to_extract -> ``str``: the key to extract from the JSON object.
+        :returns result -> ``str`` || ``int``: the value extracted from the key.
+        """
+        if key_to_extract not in json_data.keys():
+            result = "N/A"
+        else:
+            result = json_data[key_to_extract]
+        return result
+    
     @property
     def ticker(self: Reader) -> str:
         """getter for the ticker attribute."""
@@ -60,6 +75,16 @@ class Reader:
     def name(self: Reader, name_value: str) -> None:
         """setter for the name attribute."""
         self.__name = name_value
+    
+    def is_valid(self, ticker_url: str) -> str:
+        """
+        Runs a quick validity check for the passed Ticker.
+
+        If error is null, True is returned. Otherwise, False is returned and an error is thrown.
+
+        :param ticker_url -> ``str``: the URL of the ticker.
+        """
+        return requests.get(ticker_url).status_code != 404
 
 
     def build_equity_chart_url(self: Reader) -> str:
@@ -75,17 +100,7 @@ class Reader:
         # TODO: this will be more robust based off args that can be passed via command-line
         result = base_chart_url + self.equity
 
-        def is_valid(ticker_url: str) -> str:
-            """
-            Runs a quick validity check for the passed Ticker.
-
-            If error is null, True is returned. Otherwise, False is returned and an error is thrown.
-
-            :param ticker_url -> ``str``: the URL of the ticker.
-            """
-            return requests.get(ticker_url).status_code != 404
-
-        if is_valid(result):
+        if self.is_valid(result):
             self.chart_url = result
             return True
         raise ValueError("Invalid Ticker Symbol Passed.")
@@ -104,7 +119,7 @@ class Reader:
         # TODO: this will be more robust based off args that can be passed via command-line
         result = base_quote_url + f"?symbols={self.equity}"
 
-        def is_valid(ticker_url: str) -> str:
+        def is_valid(ticker_url: str) -> bool:
             """
             Runs a quick validity check for the passed Ticker.
 
@@ -121,8 +136,38 @@ class Reader:
             return True
         raise ValueError("Invalid Ticker Symbol Passed.")
 
-    def build_company_lookup_url(self):
-        """"""
+    def build_company_lookup_url(self: Reader) -> str:
+        """
+        Creates the company lookup URL based on the value passed during instantiation
+        of the class.
+
+        :param self -> ``Reader``:
+        :return result -> ``str``: the URL to use for self._get()
+        """
+        base_company_url = Constants.yahoo_finance_co_lookup
+        result = base_company_url + "+".join(self.equity.split(" "))
+
+        def is_valid(equity: requests.get) -> bool:
+            """
+            runs a quick validity check to ensure there are quotes matching
+            the passed values. If there aren't, a ``ValueError`` is raised.
+            """
+            """
+            Runs a quick validity check for the passed Ticker.
+
+            If error is null, True is returned. Otherwise, False is returned and an error is thrown.
+
+            :param ticker_url -> ``str``: the URL of the ticker.
+            """
+            json_response = requests.get(equity).json()
+
+            return json_response["quotes"] != []
+
+        
+        if is_valid(result):
+            self.company_url = result
+            return True
+        raise ValueError("Search returned no results.")
 
     def get_equity_chart_data(self: Reader) -> str:
         """
@@ -140,7 +185,7 @@ class Reader:
         """
         return self._get(self.quote_url)
     
-    def get_equity_company_data(self: Reader) -> str:
+    def get_equity_company_data(self: Reader) -> Dict[str, Any]:
         """
         the 'equity' value passed upon initialization is used to perform a 
         'reverse lookup'. 
@@ -157,4 +202,20 @@ class Reader:
         #TODO: when CLI is setup, lets take the list of companies returned from the reverse lookup and allow the user to select which one they want to see. 
         # ! kinda like how GitHub offers various authentication options and you get to choose.
         """
+        json_response = self._get(self.company_url)
 
+        def extract_shortname(data):
+            """extract 'shortname' from JSON object."""
+            return self._extract_data_from(data, "shortname")
+        
+        def extract_ticker(data):
+            """extract ticker symbol from JSON object."""
+            return self._extract_data_from(data, "symbol")
+
+        short_name = extract_shortname(json_response["quotes"][0])
+        ticker = extract_ticker(json_response["quotes"][0])
+
+        return (
+            short_name,
+            ticker
+        )
