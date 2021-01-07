@@ -9,6 +9,8 @@ from equit_ease.utils.Constants import Constants
 
 
 class Parser(Reader):
+    """contains methods utilized by all children classes."""
+
     def __init__(self, equity_to_search, data):
         super().__init__(equity_to_search)
         self.data = data
