@@ -1,4 +1,4 @@
-from tests import test_reader
+from tests import test_parser, test_reader
 import unittest
 from types import ModuleType
 
@@ -8,3 +8,4 @@ def instantiate_test(module_name: ModuleType) -> None:
     unittest.TextTestRunner().run(MODULE)
 
 instantiate_test(test_reader)
+instantiate_test(test_parser)
