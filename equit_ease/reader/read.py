@@ -75,16 +75,6 @@ class Reader:
     def name(self: Reader, name_value: str) -> None:
         """setter for the name attribute."""
         self.__name = name_value
-    
-    def is_valid(self, ticker_url: str) -> str:
-        """
-        Runs a quick validity check for the passed Ticker.
-
-        If error is null, True is returned. Otherwise, False is returned and an error is thrown.
-
-        :param ticker_url -> ``str``: the URL of the ticker.
-        """
-        return requests.get(ticker_url).status_code != 404
 
 
     def build_equity_chart_url(self: Reader) -> str:
@@ -98,12 +88,10 @@ class Reader:
         """
         base_chart_url = Constants.yahoo_finance_base_chart_url
         # TODO: this will be more robust based off args that can be passed via command-line
-        result = base_chart_url + self.equity
+        result = base_chart_url + self.__ticker
 
-        if self.is_valid(result):
-            self.chart_url = result
-            return True
-        raise ValueError("Invalid Ticker Symbol Passed.")
+        self.chart_url = result
+        return True
 
 
     def build_equity_quote_url(self: Reader) -> str:
@@ -117,24 +105,10 @@ class Reader:
         """
         base_quote_url = Constants.yahoo_finance_base_quote_url
         # TODO: this will be more robust based off args that can be passed via command-line
-        result = base_quote_url + f"?symbols={self.equity}"
+        result = base_quote_url + f"?symbols={self.__ticker}"
 
-        def is_valid(ticker_url: str) -> bool:
-            """
-            Runs a quick validity check for the passed Ticker.
-
-            If error is null, True is returned. Otherwise, False is returned and an error is thrown.
-
-            :param ticker_url -> ``str``: the URL of the ticker.
-            """
-            json_response = requests.get(ticker_url).json()
-
-            return json_response["quoteResponse"]["result"] != []
-
-        if is_valid(result):
-            self.quote_url = result
-            return True
-        raise ValueError("Invalid Ticker Symbol Passed.")
+        self.quote_url = result
+        return True
 
     def build_company_lookup_url(self: Reader) -> str:
         """
@@ -191,31 +165,31 @@ class Reader:
         'reverse lookup'. 
         
         The 'equity' value is used to query a Yahoo Finance endpoint which 
-        returns the shortname and ticker symbol (amongst other things) for
+        returns the long name and ticker symbol (amongst other things) for
         a stock. These two attributes are set with getter/setter methods
         and the ticker symbol is then used throughout the hierarchical
         structure to query yahoo finance.
 
         :param self -> ``Reader``:
-        :returns result -> ``Dict[str, Any]``: Dict containing shortname and ticker symbol data.
+        :returns result -> ``Dict[str, Any]``: Dict containing short name and ticker symbol data.
 
         #TODO: when CLI is setup, lets take the list of companies returned from the reverse lookup and allow the user to select which one they want to see. 
         # ! kinda like how GitHub offers various authentication options and you get to choose.
         """
         json_response = self._get(self.company_url)
 
-        def extract_shortname(data):
-            """extract 'shortname' from JSON object."""
-            return self._extract_data_from(data, "shortname")
+        def extract_longname(data):
+            """extract 'longname' from JSON object."""
+            return self._extract_data_from(data, "longname")
         
         def extract_ticker(data):
             """extract ticker symbol from JSON object."""
             return self._extract_data_from(data, "symbol")
 
-        short_name = extract_shortname(json_response["quotes"][0])
+        long_name = extract_longname(json_response["quotes"][0])
         ticker = extract_ticker(json_response["quotes"][0])
 
         return (
-            short_name,
+            long_name,
             ticker
         )
