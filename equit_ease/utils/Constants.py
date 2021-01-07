@@ -4,8 +4,9 @@ class Constants:
     """Dedicated to storing any constants used throughout this program in a centralized location."""
 
     yahoo_finance_base_chart_url = "https://query1.finance.yahoo.com/v8/finance/chart/"
-
     yahoo_finance_base_quote_url = "https://query1.finance.yahoo.com/v7/finance/quote"
+    yahoo_finance_co_lookup = "https://query2.finance.yahoo.com/v1/finance/search?q="
+
     yahoo_finance_quote_keys = [
         "regularMarketPreviousClose",
         "regularMarketOpen",
