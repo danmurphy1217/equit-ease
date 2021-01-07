@@ -97,3 +97,33 @@ class TestReaderMethods(unittest.TestCase):
             reader.build_equity_quote_url
 
             reader.get_equity_quote_data()
+
+    def test_private_get_pass(self):
+        """test case #1 for call private method directly -> pass."""
+        ticker_to_search = "TSLA"
+        reader = Reader(ticker_to_search)
+
+        chart_data_response = reader._get(
+            Constants.yahoo_finance_base_chart_url + ticker_to_search
+        )
+
+        self.assertTrue(chart_data_response["chart"]["error"] is None)
+        self.assertTrue(
+            ("meta" and "timestamp" and "indicators")
+            in chart_data_response["chart"]["result"][0].keys()
+        )
+
+    def test_private_get_fail(self):
+        """
+        test case #2 for call private method directly -> fail.
+
+        this should never happen, since a validity check is sent upon initialization to
+        ensure that a ticker symbol exists in the database. But, if the private method
+        were to be called directly, raise_for_status() will catch it [assuming yfinance
+        responsds with a 404].
+        """
+        ticker_to_search = "XYZ"
+        reader = Reader(ticker_to_search)
+
+        with self.assertRaises(HTTPError):
+            reader._get(Constants.yahoo_finance_base_chart_url + ticker_to_search)
