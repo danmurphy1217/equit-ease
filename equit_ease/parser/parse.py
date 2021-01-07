@@ -15,21 +15,6 @@ class Parser(Reader):
         super().__init__(equity)
         self.data = data
 
-    @staticmethod
-    def _extract_data_from(json_data: Dict[str, Any], key_to_extract: str) -> Any:
-        """
-        extract ``key_to_extract`` from ``json_data``
-
-        :param json_data -> ``Dict[str, Any]``: JSON response object from any GET /<yahoo_finance_endpoint> which returns JSON data.
-        :param key_to_extract -> ``str``: the key to extract from the JSON object.
-        :returns result -> ``str`` || ``int``: the value extracted from the key.
-        """
-        if key_to_extract not in json_data.keys():
-            result = "N/A"
-        else:
-            result = json_data[key_to_extract]
-        return result
-
     def _build_dict_repr(
         self, keys_to_extract: List[str], data: Dict[str, Any]
     ) -> Dict[str, Any]:
@@ -118,5 +103,10 @@ class ChartParser(Parser):
         equity_chart_data_struct = self._build_dict_repr(
             keys_to_extract, json_data_for_extraction
         )
-
-        return equity_chart_data_struct
+        return (
+            self._extract_data_from(equity_chart_data_struct, "low"),
+            self._extract_data_from(equity_chart_data_struct, "high"),
+            self._extract_data_from(equity_chart_data_struct, "open"),
+            self._extract_data_from(equity_chart_data_struct, "close"),
+            self._extract_data_from(equity_chart_data_struct, "volume"),
+        )
