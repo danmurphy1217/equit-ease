@@ -5,6 +5,8 @@ from typing import Any
 
 from equit_ease.datatypes.equity_meta import EquityMeta
 from equit_ease.parser.parse import Parser
+from equit_ease.displayer.format import Formatter
+from equit_ease.utils.Constants import Constants
 
 
 class Displayer(Parser):
@@ -12,18 +14,25 @@ class Displayer(Parser):
 
     def __init__(self, equity_to_search, data):
         super().__init__(equity_to_search, data)
-
-    @staticmethod
-    def center_print(string_to_print: str) -> None:
+    
+    def set_formatting(self, value_to_format: str or int, formatting_type: str) -> str:
         """
-        center prints a string to the console.
+        apply a template of formatting to the provided value.
 
-        :param string_to_print -> ``str``: the string to print to the console.
-        :returns ``None``:
+        :param value_to_format -> ``str``: the value that should be formatted.
+        :param formatting_type -> ``str``: the type of formatting to perform.
+        :return result -> ``str``: the result to return.
         """
-        terminal_width, _ = os.get_terminal_size()
-        print(f"{string_to_print}".center(terminal_width))
-
+        result = value_to_format
+        
+        # https://stackoverflow.com/questions/1952464/in-python-how-do-i-determine-if-an-object-is-iterable
+        if isinstance(formatting_type, list):
+            for styling in formatting_type:
+                result = Constants.dispatcher[styling](result)
+        else:
+            result = Constants.dispatcher[formatting_type](result)
+        
+        return result
 
 class ChartDisplayer(Displayer):
     """"contains methods used solely for the displayment of the chart data."""
@@ -34,8 +43,7 @@ class QuoteDisplayer(Displayer):
 
     def stringify(self: QuoteDisplayer) -> str:
         """
-        str representation of the quote meta-data. This is printed
-        to the console with self.center_print().
+        str representation of the quote meta-data.
 
         :param self -> ``QuoteDisplayer``:
         """
@@ -46,8 +54,7 @@ class QuoteDisplayer(Displayer):
             s += self.__repr__(key, value)
         return s
 
-    @staticmethod    
-    def __repr__(key: str, value: Any) -> str:
+    def __repr__(self, key: str, value: Any) -> str:
         """
         builds a string representation of a key-value pair of EquityMeta.
 
@@ -56,4 +63,7 @@ class QuoteDisplayer(Displayer):
 
         :returns result -> ``str``: a string representation of the key-value pair.
         """
-        return f"{key}: {value}\n"
+        formatted_key = self.set_formatting(key, "bold")
+        formatted_value = self.set_formatting(value, ["color", "bold", "underline"])
+        result = self.set_formatting(f"{formatted_key}: {formatted_value}\n", "align")
+        return result
