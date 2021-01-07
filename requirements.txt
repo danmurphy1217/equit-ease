@@ -13,8 +13,8 @@ pathspec==0.8.1
 pluggy==0.13.1
 py==1.10.0
 pycodestyle==2.6.0
+pyfiglet==0.8.post1
 pyparsing==2.4.7
-pytest==6.2.1
 regex==2020.11.13
 requests==2.25.1
 toml==0.10.2
