@@ -23,7 +23,14 @@ class Formatter:
         :returns result -> ``str`` or ``int``: the 'colorized' value
         """
         strinigified_value = str(a_value)
-        return Colors.RED + strinigified_value + Colors.END
+
+        if isinstance(a_value, (int, float)):
+            if a_value >= 0:
+                return Colors.GREEN + strinigified_value + Colors.END
+            else:
+                return Colors.RED + strinigified_value + Colors.END
+        else:
+            return Colors.GREEN + strinigified_value + Colors.END
     
     @staticmethod
     def set_size_for():
