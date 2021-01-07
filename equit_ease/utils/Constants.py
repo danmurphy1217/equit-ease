@@ -1,3 +1,5 @@
+from equit_ease.displayer.format import Formatter
+
 class Constants:
     """Dedicated to storing any constants used throughout this program in a centralized location."""
 
@@ -24,6 +26,13 @@ class Constants:
         "dividendDate",
     ]
 
+    dispatcher = {
+        'bold': Formatter.bold,
+        'color': Formatter.set_color_for,
+        'underline': Formatter.underline,
+        "align": Formatter.align
+    }
+
     # intermediary data struct used to map yahoo finance columns -> dataclass names.
     yahoo_finance_column_mappings = {
         "previous_close": "regularMarketPreviousClose",
@@ -45,5 +54,4 @@ class Constants:
         "next_dividend_date": "dividendDate",
     }
 
-    # def build_kw_args()
     # https://query1.finance.yahoo.com/v8/finance/chart/T?region=US&lang=en-US&includePrePost=false&interval=1d&range=6mo
