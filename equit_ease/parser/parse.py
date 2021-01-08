@@ -97,6 +97,7 @@ class ChartParser(Parser):
         
         :returns result -> ``List[float]``
         """
+        # TODO: can I do this more cleanly?
         remove_none_types = [
             item for item in item_to_standardize if item is not None
         ]
