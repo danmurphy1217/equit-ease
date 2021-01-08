@@ -37,6 +37,10 @@ class Displayer(Parser):
 class ChartDisplayer(Displayer):
     """"contains methods used solely for the displayment of the chart data."""
 
+    def _set_graph_axes(self):
+        """builds the axes and core plot for the chart."""
+        return self.data
+
 
 class QuoteDisplayer(Displayer):
     """contains methods used solely for the displayment of quote data."""
