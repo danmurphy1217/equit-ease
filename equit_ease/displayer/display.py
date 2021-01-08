@@ -1,7 +1,9 @@
 from __future__ import annotations
+import math
 import os
+from statistics import quantiles
 import dataclasses
-from typing import Any
+from typing import Any, List
 
 from equit_ease.datatypes.equity_meta import EquityMeta
 from equit_ease.parser.parse import Parser
@@ -36,10 +38,26 @@ class Displayer(Parser):
 
 class ChartDisplayer(Displayer):
     """"contains methods used solely for the displayment of the chart data."""
+    def __init__(self, x_axes, y_axes, title):
+        self.x_axes = x_axes
+        self.y_axes = y_axes
+        self.title = title
 
     def _set_graph_axes(self):
         """builds the axes and core plot for the chart."""
-        return self.data
+        x_axis_range = list(range(*self.x_axes))
+        y_axis_range = list(range(*self.y_axes))
+
+        # print(quantiles(y_axis_range, n=4))
+        # print(len(x_axis_range), len(y_axis_range))
+
+        data = ['-' for _ in x_axis_range]
+
+        col_width = max(len(row) for row in data) + 2  # padding
+        for row in data:
+            print("".join(row.ljust(col_width)))
+
+
 
 
 class QuoteDisplayer(Displayer):
