@@ -11,24 +11,9 @@ from equit_ease.utils.Constants import Constants
 class Parser(Reader):
     """contains methods utilized by all children classes."""
 
-    def __init__(self, equity_to_search, data):
-        super().__init__(equity_to_search)
+    def __init__(self, equity, data):
+        super().__init__(equity)
         self.data = data
-
-    @staticmethod
-    def _extract_data_from(json_data: Dict[str, Any], key_to_extract: str) -> Any:
-        """
-        extract ``key_to_extract`` from ``json_data``
-
-        :param json_data -> ``Dict[str, Any]``: JSON response object from any GET /<yahoo_finance_endpoint> which returns JSON data.
-        :param key_to_extract -> ``str``: the key to extract from the JSON object.
-        :returns result -> ``str`` || ``int``: the value extracted from the key.
-        """
-        if key_to_extract not in json_data.keys():
-            result = "N/A"
-        else:
-            result = json_data[key_to_extract]
-        return result
 
     def _build_dict_repr(
         self, keys_to_extract: List[str], data: Dict[str, Any]
@@ -102,6 +87,27 @@ class QuoteParser(Parser):
 class ChartParser(Parser):
     """contains methods relating to the parsing of Yahoo Finance Chart data."""
 
+    def _standardize(self, item_to_standardize: List[float | None]) -> List[float]:
+        """
+        retrieves the mean of the items in the list (after removing none types), 
+        then replaces none types with the mean
+        
+        :param self -> ``Parser``:
+        :param item_to_standardize -> ``List[float | None]``: a list of items to standardize.
+        
+        :returns result -> ``List[float]``
+        """
+        remove_none_types = [
+            item for item in item_to_standardize if item is not None
+        ]
+        avg_of_filtered_items = sum(remove_none_types)/len(remove_none_types)
+        
+        result = [
+            item if item is not None else avg_of_filtered_items for item in item_to_standardize
+        ]
+
+        return result
+
     def extract_equity_chart_data(self: ChartParser) -> Dict[str, Any]:
         """
         extracts chart-related data from GET /chart API call. This chart data
@@ -118,5 +124,10 @@ class ChartParser(Parser):
         equity_chart_data_struct = self._build_dict_repr(
             keys_to_extract, json_data_for_extraction
         )
-
-        return equity_chart_data_struct
+        return (
+            self._standardize(self._extract_data_from(equity_chart_data_struct, "low")),
+            self._standardize(self._extract_data_from(equity_chart_data_struct, "high")),
+            self._standardize(self._extract_data_from(equity_chart_data_struct, "open")),
+            self._standardize(self._extract_data_from(equity_chart_data_struct, "close")),
+            self._standardize(self._extract_data_from(equity_chart_data_struct, "volume")),
+        )
