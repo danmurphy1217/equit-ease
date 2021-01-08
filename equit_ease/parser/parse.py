@@ -120,6 +120,8 @@ class ChartParser(Parser):
         json_data_for_extraction = equity_chart_data["chart"]["result"][0][
             "indicators"
         ]["quote"][0]
+
+        json_timezone_for_extraction = equity_chart_data["chart"]["result"][0]
         keys_to_extract = json_data_for_extraction.keys()
 
         equity_chart_data_struct = self._build_dict_repr(
@@ -131,4 +133,5 @@ class ChartParser(Parser):
             self._standardize(self._extract_data_from(equity_chart_data_struct, "open")),
             self._standardize(self._extract_data_from(equity_chart_data_struct, "close")),
             self._standardize(self._extract_data_from(equity_chart_data_struct, "volume")),
+            self._standardize(self._extract_data_from(json_timezone_for_extraction, "timestamp")),
         )
