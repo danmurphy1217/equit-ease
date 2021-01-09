@@ -47,17 +47,48 @@ class ChartDisplayer(Displayer):
         """builds the axes and core plot for the chart."""
         x_axis_range = list(range(*self.x_axes))
         y_axis_range = list(range(*self.y_axes))
+        
+        plot = []
+        n_columns = (2*os.get_terminal_size().columns)//4
+        n_rows = os.get_terminal_size().lines//2
 
-        # print(quantiles(y_axis_range, n=4))
-        # print(len(x_axis_range), len(y_axis_range))
+        plot = self._build_plot(n_columns, n_rows, "-", "|")
 
-        data = ['-' for _ in x_axis_range]
+        # return len(plot), len(plot[0])
+        for line in plot:
+            print(line)
 
-        col_width = max(len(row) for row in data) + 2  # padding
-        for row in data:
-            print("".join(row.ljust(col_width)))
+    
+    def build_x_axes():
+        """"""
 
+    
+    def build_y_axes():
+        """"""
+    
+    @staticmethod
+    def _build_plot(x_axis: int, y_axis: int, x_axis_pattern: str, y_axis_pattern: str) -> List[List[Any]]:
+        """
+        build plot used to display price/volume data.
 
+        :param x_axis -> ``int``: the number of rows
+        :param y_axis -> ``int``:
+        :param axes_pattern: ``str``:
+        """
+        plot = []
+        for i in range(y_axis):
+            x_axis_values = []
+            for j in range(x_axis):
+                if i ==  0 or i == max(range((y_axis))):
+                    x_axis_values.append(x_axis_pattern)
+                else:
+                    if j == 0 or j == max(range(x_axis)):
+                        x_axis_values.append(y_axis_pattern)
+                    else:
+                        x_axis_values.append(" ")
+            plot.append("".join(x_axis_values))
+        
+        return plot
 
 
 class QuoteDisplayer(Displayer):
