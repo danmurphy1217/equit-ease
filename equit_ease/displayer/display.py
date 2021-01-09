@@ -1,5 +1,5 @@
 from __future__ import annotations
-import math
+from datetime import datetime
 import os
 from statistics import quantiles
 import dataclasses
@@ -45,41 +45,64 @@ class ChartDisplayer(Displayer):
 
     def _set_graph_axes(self):
         """builds the axes and core plot for the chart."""
-        x_axis_range = list(range(*self.x_axes))
-        y_axis_range = list(range(*self.y_axes))
         
         plot = []
-        n_columns = (2*os.get_terminal_size().columns)//4
+        n_columns = (3*os.get_terminal_size().columns)//4
         n_rows = os.get_terminal_size().lines//2
 
-        plot = self._build_plot(n_columns, n_rows, "-", "|")
+        x_axis_labels = self._build_x_axis_labels(n_columns, range(n_columns)[0], range(n_columns)[len(range(n_columns))//4], range(n_columns)[len(range(n_columns))//2], range(n_columns)[(3*len(range(n_columns)))//4], range(n_columns)[len(range(n_columns)) - 1])
+        
+        plot = self._build_plot(len(x_axis_labels), n_rows, "-", "|")
 
-        # return len(plot), len(plot[0])
         for line in plot:
             print(line)
+        print(x_axis_labels)
 
-    
-    def build_x_axes():
-        """"""
+    def _build_x_axis_labels(self, n_columns: int, *args: str) -> List[str]:
+        """
+        build x axis labels for the plot.
+
+        :args -> ``str``: should contain the indices on which the labels should be placed.
+
+        :returns result -> ``List[str]``: a formatted list of x-axis labels
+        """
+        labels = [" "]*n_columns
+        axes_len = len(self.x_axes)
+        min = self.x_axes[0]
+        q_one = self.x_axes[axes_len // 4]
+        q_two = self.x_axes[axes_len // 2]
+        q_three = self.x_axes[ (3*axes_len) // 4]
+        max = self.x_axes[axes_len - 1]
+        l = [min, q_one, q_two, q_three, max]
+
+        for i, arg in enumerate(args):
+            # labels[arg] = datetime.fromtimestamp(l[i]).strftime("%H:%M")
+            labels[arg] = datetime.fromtimestamp(l[i]).strftime("%H")
+        
+        return "".join(labels)
+
 
     
     def build_y_axes():
         """"""
     
     @staticmethod
-    def _build_plot(x_axis: int, y_axis: int, x_axis_pattern: str, y_axis_pattern: str) -> List[List[Any]]:
+    def _build_plot(x_axis: int, y_axis: int, x_axis_pattern: str, y_axis_pattern: str) -> List[List[str]]:
         """
         build plot used to display price/volume data.
 
-        :param x_axis -> ``int``: the number of rows
-        :param y_axis -> ``int``:
-        :param axes_pattern: ``str``:
+        :param x_axis -> ``int``: the number of columns for the plot
+        :param y_axis -> ``int``: the number of lines for the plot
+        :param x_axis_pattern: ``str``: the pattern to use for drawing the x axis
+        :param y_axis_pattern: ``str``: the pattern to use for drawing the y axis
+
+        :returns plot -> ``List[str]``: the plot represented as a one-dimensional array.
         """
         plot = []
         for i in range(y_axis):
             x_axis_values = []
             for j in range(x_axis):
-                if i ==  0 or i == max(range((y_axis))):
+                if i ==  0 or i == max(range(y_axis)):
                     x_axis_values.append(x_axis_pattern)
                 else:
                     if j == 0 or j == max(range(x_axis)):
