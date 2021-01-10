@@ -72,14 +72,6 @@ class ChartDisplayer(Displayer):
         :returns result -> ``str``: a formatted list of x-axis labels
         """
         labels = [" "]*n_columns
-        # axes_len = len(self.x_axes)
-        # min = self.x_axes[0]
-        # q_one = self.x_axes[axes_len // 4]
-        # q_two = self.x_axes[axes_len // 2]
-        # q_three = self.x_axes[ (3*axes_len) // 4]
-        # max = self.x_axes[axes_len - 1]
-        # l = [min, q_one, q_two, q_three, max]
-
         five_num_summary = self._build_five_num_summary(self.x_axes)
 
         for i, arg in enumerate(args):
