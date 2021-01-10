@@ -3,6 +3,7 @@ from datetime import datetime
 import os
 import dataclasses
 from typing import Any, List, Tuple, Set
+import random
 
 from equit_ease.datatypes.equity_meta import EquityMeta
 from equit_ease.parser.parse import Parser
@@ -49,19 +50,43 @@ class ChartDisplayer(Displayer):
         n_columns = (3*os.get_terminal_size().columns) // 4
         n_rows = (os.get_terminal_size().lines) // 2
         
-        x_axis_labels = self._build_x_axis_labels(n_columns, *self._build_five_num_summary(n_columns))
-        y_axis_labels = self._build_y_axis_labels(n_rows, *self._build_five_num_summary(n_rows))[::-1]
-        
+        x_axis_indices = self._build_five_num_summary(n_columns)
+        x_axis_labels = self._build_x_axis_labels(n_columns, *x_axis_indices)
+        y_axis_indices = self._build_five_num_summary(n_rows)
+        y_axis_labels = self._build_y_axis_labels(n_rows, *y_axis_indices)[::-1]
+
         max_width = len(max(y_axis_labels, key=len))
         padded_y_axis_labels = self._set_padding(y_axis_labels, max_width)
         padded_x_axis_labels = max_width*" " + x_axis_labels
         
-        plot = self._build_plot(len(x_axis_labels), n_rows, "_", "|")
-        plot.append(padded_x_axis_labels)
+        plot = self._build_plot(len(x_axis_labels), n_rows, "-", "|")
 
+        #TODO: get tuple containing (TIME, PRICE) info for the y_axis_labels
+        only_numbers = filter(lambda val: int(val.strip()) if val.strip() != '' else None, x_axis_labels)
+
+        for i, price_label in enumerate(y_axis_labels):
+            stripped_price = price_label.strip()
+            clean_price = float(stripped_price) if stripped_price != '' else stripped_price
+            if clean_price != '':
+                price_index = self.y_axes.index(clean_price)
+                time = self.x_axes[price_index]
+                if datetime.fromtimestamp(time).strftime("%H") in x_axis_labels:
+                    plot[i][x_axis_labels.index(datetime.fromtimestamp(time).strftime("%H"))] = Formatter.bold(Formatter.set_color_for("0"))
+                    print(
+                        clean_price,
+                        i,
+                        price_index,
+                        x_axis_labels.index(datetime.fromtimestamp(time).strftime("%H"))
+                    )
+            
+
+        plot.append(padded_x_axis_labels)
         for i, line in enumerate(plot):
             if isinstance(line, list):
+                # line[random.choice(x_axis_indices)] = Formatter.set_color_for('O')
                 line.insert(0, padded_y_axis_labels[i])
+            
+
             print("".join(line))
 
     def _build_x_axis_labels(self, n_columns: int, *args: str) -> str:
@@ -78,7 +103,7 @@ class ChartDisplayer(Displayer):
 
         for i, arg in enumerate(args):
             labels[arg] = datetime.fromtimestamp(five_num_summary[i]).strftime("%H")
-        
+
         return "".join(labels)
 
 
