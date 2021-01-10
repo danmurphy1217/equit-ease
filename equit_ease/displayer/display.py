@@ -49,7 +49,7 @@ class ChartDisplayer(Displayer):
         n_columns = (3*os.get_terminal_size().columns) // 4
         n_rows = (os.get_terminal_size().lines) // 2
         x_axis_labels = self._build_x_axis_labels(n_columns, *self._build_five_num_summary(n_columns))
-        y_axis_labels = self._build_y_axis_labels(n_rows, range(n_rows)[0], range(n_rows)[len(range(n_rows))//4], range(n_rows)[len(range(n_rows))//2], range(n_rows)[(3*len(range(n_rows)))//4], range(n_rows)[len(range(n_rows)) - 1])[::-1]
+        y_axis_labels = self._build_y_axis_labels(n_rows, *self._build_five_num_summary(n_rows))[::-1]
         max_width = len(max(y_axis_labels, key=len))
         padded_y_axis_labels = self._set_padding(y_axis_labels, max_width)
         padded_x_axis_labels = max_width*" " + x_axis_labels
@@ -72,16 +72,18 @@ class ChartDisplayer(Displayer):
         :returns result -> ``str``: a formatted list of x-axis labels
         """
         labels = [" "]*n_columns
-        axes_len = len(self.x_axes)
-        min = self.x_axes[0]
-        q_one = self.x_axes[axes_len // 4]
-        q_two = self.x_axes[axes_len // 2]
-        q_three = self.x_axes[ (3*axes_len) // 4]
-        max = self.x_axes[axes_len - 1]
-        l = [min, q_one, q_two, q_three, max]
+        # axes_len = len(self.x_axes)
+        # min = self.x_axes[0]
+        # q_one = self.x_axes[axes_len // 4]
+        # q_two = self.x_axes[axes_len // 2]
+        # q_three = self.x_axes[ (3*axes_len) // 4]
+        # max = self.x_axes[axes_len - 1]
+        # l = [min, q_one, q_two, q_three, max]
+
+        five_num_summary = self._build_five_num_summary(self.x_axes)
 
         for i, arg in enumerate(args):
-            labels[arg] = datetime.fromtimestamp(l[i]).strftime("%H")
+            labels[arg] = datetime.fromtimestamp(five_num_summary[i]).strftime("%H")
         
         return "".join(labels)
 
@@ -162,13 +164,13 @@ class ChartDisplayer(Displayer):
 
         :returns result -> ``Tuple``: five-number summary from min -> max.
         """
-        range_for_data = range(data)
+        range_for_data = range(data) if isinstance(data, int) else data
 
-        def get_min(data: List or Tuple or Set) -> int:
+        def get_min() -> int:
             """retrieve the minimum from the data."""
             return range_for_data[0]
         
-        def get_max(data: List or Tuple or Set) -> int:
+        def get_max() -> int:
             """retrieve the maximum from the data."""
             return range_for_data[-1]
         
@@ -185,11 +187,11 @@ class ChartDisplayer(Displayer):
                     return range_for_data[(3*len(range_for_data)) // 4]
         
         return (
-            get_min(data),
+            get_min(),
             get_quartile(1),
             get_quartile(2),
             get_quartile(3),
-            get_max(data)
+            get_max()
         )
 
     
