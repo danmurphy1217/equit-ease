@@ -48,8 +48,10 @@ class ChartDisplayer(Displayer):
         plot = []
         n_columns = (3*os.get_terminal_size().columns) // 4
         n_rows = (os.get_terminal_size().lines) // 2
+        
         x_axis_labels = self._build_x_axis_labels(n_columns, *self._build_five_num_summary(n_columns))
         y_axis_labels = self._build_y_axis_labels(n_rows, *self._build_five_num_summary(n_rows))[::-1]
+        
         max_width = len(max(y_axis_labels, key=len))
         padded_y_axis_labels = self._set_padding(y_axis_labels, max_width)
         padded_x_axis_labels = max_width*" " + x_axis_labels
@@ -89,16 +91,10 @@ class ChartDisplayer(Displayer):
         :args -> ``str``: should contain the indices on which the labels should be placed.
         """
         labels = [" "]*n_rows
-        axes_len = len(self.y_axes)
-        min = sorted(self.y_axes)[0]
-        q_one = sorted(self.y_axes)[axes_len // 4]
-        q_two = sorted(self.y_axes)[axes_len // 2]
-        q_three = sorted(self.y_axes)[ (3*axes_len) // 4]
-        max = sorted(self.y_axes)[axes_len - 1]
-        l = [min, q_one, q_two, q_three, max]
+        five_num_summary = self._build_five_num_summary(sorted(self.y_axes))
 
         for i, arg in enumerate(args):
-            labels[arg] = str(l[i])
+            labels[arg] = str(five_num_summary[i])
         
         return labels
 
