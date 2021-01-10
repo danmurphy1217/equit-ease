@@ -47,24 +47,31 @@ class ChartDisplayer(Displayer):
         """builds the axes and core plot for the chart."""
         
         plot = []
-        n_columns = (3*os.get_terminal_size().columns)//4
-        n_rows = os.get_terminal_size().lines//2
+        n_columns = (3*os.get_terminal_size().columns) // 4
+        n_rows = (os.get_terminal_size().lines) // 2
 
         x_axis_labels = self._build_x_axis_labels(n_columns, range(n_columns)[0], range(n_columns)[len(range(n_columns))//4], range(n_columns)[len(range(n_columns))//2], range(n_columns)[(3*len(range(n_columns)))//4], range(n_columns)[len(range(n_columns)) - 1])
+        y_axis_labels = self._build_y_axis_labels(n_rows, range(n_rows)[0], range(n_rows)[len(range(n_rows))//4], range(n_rows)[len(range(n_rows))//2], range(n_rows)[(3*len(range(n_rows)))//4], range(n_rows)[len(range(n_rows)) - 1])[::-1]
+        padded_y_axis_labels = self._set_padding(y_axis_labels)
+        max_width = len(max(y_axis_labels, key=len))
+        padded_x_axis_labels = max_width*" " + x_axis_labels
         
-        plot = self._build_plot(len(x_axis_labels), n_rows, "-", "|")
+        plot = self._build_plot(len(x_axis_labels), n_rows, "_", "|")
+        plot.append(padded_x_axis_labels)
 
-        for line in plot:
-            print(line)
-        print(x_axis_labels)
+        for i, line in enumerate(plot):
+            if isinstance(line, list):
+                line.insert(0, padded_y_axis_labels[i])
+            print("".join(line))
 
-    def _build_x_axis_labels(self, n_columns: int, *args: str) -> List[str]:
+    def _build_x_axis_labels(self, n_columns: int, *args: str) -> str:
         """
         build x axis labels for the plot.
 
+        :param n_columns -> ``int``: the number of columns in the plot.
         :args -> ``str``: should contain the indices on which the labels should be placed.
 
-        :returns result -> ``List[str]``: a formatted list of x-axis labels
+        :returns result -> ``str``: a formatted list of x-axis labels
         """
         labels = [" "]*n_columns
         axes_len = len(self.x_axes)
@@ -76,15 +83,54 @@ class ChartDisplayer(Displayer):
         l = [min, q_one, q_two, q_three, max]
 
         for i, arg in enumerate(args):
-            # labels[arg] = datetime.fromtimestamp(l[i]).strftime("%H:%M")
             labels[arg] = datetime.fromtimestamp(l[i]).strftime("%H")
         
         return "".join(labels)
 
 
     
-    def build_y_axes():
-        """"""
+    def _build_y_axis_labels(self, n_rows: int, *args: str) -> str:
+        """
+        build y axis for the plot.
+        
+        :param n_rows: -> the number of rows in the plot.
+        :args -> ``str``: should contain the indices on which the labels should be placed.
+        """
+        labels = [" "]*n_rows
+        axes_len = len(self.y_axes)
+        min = sorted(self.y_axes)[0]
+        q_one = sorted(self.y_axes)[axes_len // 4]
+        q_two = sorted(self.y_axes)[axes_len // 2]
+        q_three = sorted(self.y_axes)[ (3*axes_len) // 4]
+        max = sorted(self.y_axes)[axes_len - 1]
+        l = [min, q_one, q_two, q_three, max]
+
+        for i, arg in enumerate(args):
+            labels[arg] = str(l[i])
+        
+        return labels
+
+    @staticmethod
+    def _set_padding(labels: List[str]):
+        """
+        adds whitespace along the y-axis to align labels.
+        
+        :param labels -> ``List[str]``: the labels for the y axis of the plot.
+
+        :returns result -> ``List[str]``:  padded y axis labels.
+        """
+        max_width = len(max(labels, key=len))
+        padded_labels = []
+
+        for label in labels:
+            label_length_diff = max_width - len(label)
+            padding = " "*label_length_diff
+            padded_label = padding + label + " "
+            padded_labels.append(padded_label)
+        
+        return padded_labels
+
+
     
     @staticmethod
     def _build_plot(x_axis: int, y_axis: int, x_axis_pattern: str, y_axis_pattern: str) -> List[List[str]]:
@@ -109,7 +155,7 @@ class ChartDisplayer(Displayer):
                         x_axis_values.append(y_axis_pattern)
                     else:
                         x_axis_values.append(" ")
-            plot.append("".join(x_axis_values))
+            plot.append(x_axis_values)
         
         return plot
 
