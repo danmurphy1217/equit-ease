@@ -52,8 +52,8 @@ class ChartDisplayer(Displayer):
 
         x_axis_labels = self._build_x_axis_labels(n_columns, range(n_columns)[0], range(n_columns)[len(range(n_columns))//4], range(n_columns)[len(range(n_columns))//2], range(n_columns)[(3*len(range(n_columns)))//4], range(n_columns)[len(range(n_columns)) - 1])
         y_axis_labels = self._build_y_axis_labels(n_rows, range(n_rows)[0], range(n_rows)[len(range(n_rows))//4], range(n_rows)[len(range(n_rows))//2], range(n_rows)[(3*len(range(n_rows)))//4], range(n_rows)[len(range(n_rows)) - 1])[::-1]
-        padded_y_axis_labels = self._set_padding(y_axis_labels)
         max_width = len(max(y_axis_labels, key=len))
+        padded_y_axis_labels = self._set_padding(y_axis_labels, max_width)
         padded_x_axis_labels = max_width*" " + x_axis_labels
         
         plot = self._build_plot(len(x_axis_labels), n_rows, "_", "|")
@@ -111,7 +111,7 @@ class ChartDisplayer(Displayer):
         return labels
 
     @staticmethod
-    def _set_padding(labels: List[str]):
+    def _set_padding(labels: List[str], max_width: int):
         """
         adds whitespace along the y-axis to align labels.
         
@@ -119,7 +119,6 @@ class ChartDisplayer(Displayer):
 
         :returns result -> ``List[str]``:  padded y axis labels.
         """
-        max_width = len(max(labels, key=len))
         padded_labels = []
 
         for label in labels:
