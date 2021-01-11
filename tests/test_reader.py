@@ -20,6 +20,7 @@ class TestReaderMethods(unittest.TestCase):
             reader.build_equity_quote_url()
             reader.build_equity_chart_url()
             return reader
+
         def set_up_reader_tick(reader: Reader) -> Reader:
             reader.build_company_lookup_url()
             long_name, ticker = reader.get_equity_company_data()
@@ -28,7 +29,7 @@ class TestReaderMethods(unittest.TestCase):
 
             reader.build_equity_quote_url()
             reader.build_equity_chart_url()
-            return reader            
+            return reader
 
         self.company_name = "Apple"
         self.ticker_name = "CRM"
@@ -157,7 +158,7 @@ class TestReaderMethods(unittest.TestCase):
 
             reader = Reader(ticker_to_search)
             reader._get(Constants.yahoo_finance_base_chart_url + ticker_to_search)
-        
+
     def test_get_equity_company_data(self):
         """
         test case #1 for get_equity_company_data() -> pass.

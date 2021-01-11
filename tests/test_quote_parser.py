@@ -7,14 +7,13 @@ import os
 
 from equit_ease.parser.parse import QuoteParser
 
+
 def read_quote_fixture(fpath: str):
-    fixture_file_path = os.path.join(
-        os.path.dirname(__file__),
-        fpath
-    )
+    fixture_file_path = os.path.join(os.path.dirname(__file__), fpath)
     with open(fixture_file_path, "r") as quote_fixture:
         data = json.loads(quote_fixture.read())
     return data
+
 
 class TestQuoteParserMethods(unittest.TestCase):
     def setUp(self):
@@ -27,11 +26,11 @@ class TestQuoteParserMethods(unittest.TestCase):
         self.ticker_to_search = None
         self.data_fixture = None
         self.parser = QuoteParser
-    
+
     def test_extract_equity_meta_data_instance_type(self):
         """
         test extract_equity_meta_data() internal method #1 -> pass.
-        
+
         check that the response from extract_equity_meta_data() is a
         EquityMeta dataclass instance with the expected field names.
         """
@@ -41,7 +40,7 @@ class TestQuoteParserMethods(unittest.TestCase):
 
         self.assertIsInstance(equity_meta, EquityMeta)
         self.assertEqual(received_field_names, expected_field_names)
-    
+
     def test_extract_equity_metadata_validity(self):
         """
         test extract_equity_meta_data() method #2 -> pass.
@@ -51,12 +50,14 @@ class TestQuoteParserMethods(unittest.TestCase):
         """
         equity_meta_as_dict = dataclasses.asdict(self.parser.extract_equity_meta_data())
         quote_fixture = read_quote_fixture("fixtures/quote.json")
-        data_for_validation = quote_fixture['quoteResponse']['result'][0]
+        data_for_validation = quote_fixture["quoteResponse"]["result"][0]
         column_mappings = Constants.yahoo_finance_column_mappings
 
         for dataclass_key, json_data_key in column_mappings.items():
-            self.assertEqual(equity_meta_as_dict[dataclass_key], data_for_validation[json_data_key])
-    
+            self.assertEqual(
+                equity_meta_as_dict[dataclass_key], data_for_validation[json_data_key]
+            )
+
     def test_extract_equity_metadata_errant(self):
         """
         test extract_equity_meta_data() method #3 -> pass.
@@ -69,8 +70,4 @@ class TestQuoteParserMethods(unittest.TestCase):
 
         parser = QuoteParser(self.equity, self.errant_data_fixture)
         equity_meta = parser.extract_equity_meta_data()
-        self.assertTrue(equity_meta.open == 'N/A')
-    
-    
-
-        
+        self.assertTrue(equity_meta.open == "N/A")
