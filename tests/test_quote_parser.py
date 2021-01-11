@@ -7,10 +7,10 @@ import os
 
 from equit_ease.parser.parse import QuoteParser
 
-def read_quote_fixture():
+def read_quote_fixture(fpath: str):
     fixture_file_path = os.path.join(
         os.path.dirname(__file__),
-        "fixtures/quote.json"
+        fpath
     )
     with open(fixture_file_path, "r") as quote_fixture:
         data = json.loads(quote_fixture.read())
@@ -19,7 +19,8 @@ def read_quote_fixture():
 class TestQuoteParserMethods(unittest.TestCase):
     def setUp(self):
         self.equity = "Apple"
-        self.data_fixture = read_quote_fixture()
+        self.data_fixture = read_quote_fixture("fixtures/quote.json")
+        self.errant_data_fixture = read_quote_fixture("fixtures/quote-errant.json")
         self.parser = QuoteParser(self.equity, self.data_fixture)
 
     def tearDown(self):
@@ -49,10 +50,27 @@ class TestQuoteParserMethods(unittest.TestCase):
         mapped from JSON -> the dataclass.
         """
         equity_meta_as_dict = dataclasses.asdict(self.parser.extract_equity_meta_data())
-        quote_fixture = read_quote_fixture()
+        quote_fixture = read_quote_fixture("fixtures/quote.json")
         data_for_validation = quote_fixture['quoteResponse']['result'][0]
         column_mappings = Constants.yahoo_finance_column_mappings
 
         for dataclass_key, json_data_key in column_mappings.items():
             self.assertEqual(equity_meta_as_dict[dataclass_key], data_for_validation[json_data_key])
+    
+    def test_extract_equity_metadata_errant(self):
+        """
+        test extract_equity_meta_data() method #3 -> pass.
+
+        If a key is missing from the JSON object, it's value should be
+        N/A. In the errant fixture (fixtures/quote-errant.json), the
+        ``regularMarketOpen`` key has been removed. Therefore, the dataclass
+        should have the open field == 'N/A'.
+        """
+
+        parser = QuoteParser(self.equity, self.errant_data_fixture)
+        equity_meta = parser.extract_equity_meta_data()
+        self.assertTrue(equity_meta.open == 'N/A')
+    
+    
+
         
