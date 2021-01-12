@@ -1,8 +1,6 @@
-from typing import Type
 import unittest
 
-from equit_ease.parser.parse import Parser, ChartParser, QuoteParser
-from equit_ease.utils import Constants
+from equit_ease.parser.parse import Parser
 
 
 class TestParserMethods(unittest.TestCase):
