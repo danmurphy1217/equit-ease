@@ -1,0 +1,19 @@
+
+	[1mprevious close[0m: [4m[1m[92m132.05[0m[0m[0m
+	[1mopen[0m: [4m[1m[92m129.19[0m[0m[0m
+	[1mbid[0m: [4m[1m[92m129.16[0m[0m[0m
+	[1mask[0m: [4m[1m[92m129.08[0m[0m[0m
+	[1mintra day range[0m: [4m[1m[92m128.5 - 130.17[0m[0m[0m
+	[1mfifty two wk range[0m: [4m[1m[92m53.1525 - 138.79[0m[0m[0m
+	[1mmarket volume[0m: [4m[1m[92m100620880[0m[0m[0m
+	[1mmarket three month volume[0m: [4m[1m[92m115195412[0m[0m[0m
+	[1mmarket ten day volume[0m: [4m[1m[92m122119680[0m[0m[0m
+	[1mmarket cap[0m: [4m[1m[92m2169869172736[0m[0m[0m
+	[1mtrailing pe[0m: [4m[1m[92m39.32317[0m[0m[0m
+	[1mforward pe[0m: [4m[1m[92m29.582567[0m[0m[0m
+	[1mtrailing eps[0m: [4m[1m[92m3.28[0m[0m[0m
+	[1mearnings report date[0m: [4m[1m[92m1603989000[0m[0m[0m
+	[1mdividend rate[0m: [4m[1m[92m0.795[0m[0m[0m
+	[1mdividend yield[0m: [4m[1m[92m0.006020447[0m[0m[0m
+	[1mnext dividend date[0m: [4m[1m[92m1605139200[0m[0m[0m
+	

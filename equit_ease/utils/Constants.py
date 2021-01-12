@@ -1,5 +1,6 @@
 from equit_ease.displayer.format import Formatter
 
+
 class Constants:
     """Dedicated to storing any constants used throughout this program in a centralized location."""
 
@@ -28,10 +29,10 @@ class Constants:
     ]
 
     dispatcher = {
-        'bold': Formatter.bold,
-        'color': Formatter.set_color_for,
-        'underline': Formatter.underline,
-        "align": Formatter.align
+        "bold": Formatter.bold,
+        "color": Formatter.set_color_for,
+        "underline": Formatter.underline,
+        "align": Formatter.align,
     }
 
     # intermediary data struct used to map yahoo finance columns -> dataclass names.

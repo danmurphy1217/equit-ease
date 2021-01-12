@@ -89,22 +89,21 @@ class ChartParser(Parser):
 
     def _standardize(self, item_to_standardize: List[float | None]) -> List[float]:
         """
-        retrieves the mean of the items in the list (after removing none types), 
+        retrieves the mean of the items in the list (after removing none types),
         then replaces none types with the mean
-        
+
         :param self -> ``Parser``:
         :param item_to_standardize -> ``List[float | None]``: a list of items to standardize.
-        
+
         :returns result -> ``List[float]``
         """
         # TODO: can I do this more cleanly?
-        remove_none_types = [
-            item for item in item_to_standardize if item is not None
-        ]
-        avg_of_filtered_items = sum(remove_none_types)/len(remove_none_types)
-        
+        remove_none_types = [item for item in item_to_standardize if item is not None]
+        avg_of_filtered_items = sum(remove_none_types) / len(remove_none_types)
+
         result = [
-            item if item is not None else avg_of_filtered_items for item in item_to_standardize
+            item if item is not None else avg_of_filtered_items
+            for item in item_to_standardize
         ]
 
         return result
@@ -127,9 +126,17 @@ class ChartParser(Parser):
 
         return (
             self._standardize(self._extract_data_from(equity_chart_data_struct, "low")),
-            self._standardize(self._extract_data_from(equity_chart_data_struct, "high")),
-            self._standardize(self._extract_data_from(equity_chart_data_struct, "open")),
-            self._standardize(self._extract_data_from(equity_chart_data_struct, "close")),
-            self._standardize(self._extract_data_from(equity_chart_data_struct, "volume")),
-            self._standardize(self._extract_data_from(equity_chart_data, "timestamp")), # extract from base equity chart data
+            self._standardize(
+                self._extract_data_from(equity_chart_data_struct, "high")
+            ),
+            self._standardize(
+                self._extract_data_from(equity_chart_data_struct, "open")
+            ),
+            self._standardize(
+                self._extract_data_from(equity_chart_data_struct, "close")
+            ),
+            self._standardize(
+                self._extract_data_from(equity_chart_data_struct, "volume")
+            ),
+            self._extract_data_from(equity_chart_data, "timestamp")  # extract from base equity chart data
         )

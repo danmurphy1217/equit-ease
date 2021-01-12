@@ -2,6 +2,7 @@ import os
 
 from equit_ease.utils.Colors import Colors
 
+
 class Formatter:
     """defines methods related to the formatting of string or integer data."""
 
@@ -13,7 +14,7 @@ class Formatter:
         :return -> ``str`` or ``int``: the bolded value.
         """
         return Colors.BOLD + str(a_value) + Colors.END
-    
+
     @staticmethod
     def set_color_for(a_value: str or int) -> str or int:
         """
@@ -31,15 +32,15 @@ class Formatter:
                 return Colors.RED + strinigified_value + Colors.END
         else:
             return Colors.GREEN + strinigified_value + Colors.END
-    
+
     @staticmethod
     def set_size_for():
         return
-    
+
     @staticmethod
     def underline(a_value):
         return Colors.UNDERLINE + str(a_value) + Colors.END
-    
+
     @staticmethod
     def align(string_to_center: str) -> str:
         """
