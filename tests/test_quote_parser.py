@@ -17,7 +17,7 @@ def read_quote_fixture(fpath: str):
 
 class TestQuoteParserMethods(unittest.TestCase):
     """Testing methods from the QuoteParser class."""
-    
+
     def setUp(self):
         self.equity = "Apple"
         self.data_fixture = read_quote_fixture("fixtures/quote.json")
