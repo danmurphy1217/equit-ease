@@ -138,5 +138,7 @@ class ChartParser(Parser):
             self._standardize(
                 self._extract_data_from(equity_chart_data_struct, "volume")
             ),
-            self._extract_data_from(equity_chart_data, "timestamp")  # extract from base equity chart data
+            self._extract_data_from(
+                equity_chart_data, "timestamp"
+            ),  # extract from base equity chart data
         )

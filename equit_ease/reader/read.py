@@ -180,12 +180,12 @@ class Reader:
         def extract_ticker(data):
             """extract ticker symbol from JSON object."""
             return self._extract_data_from(data, "symbol")
-        
+
         def extract_quotes(data):
             """extra all quotes from JSON object."""
             choices = []
             for items in data:
-                choices.append(items['shortname'])
+                choices.append(items["shortname"])
             return choices
 
         long_name = extract_longname(json_response["quotes"][0])
@@ -193,6 +193,6 @@ class Reader:
 
         result = [long_name, ticker]
 
-        if kwargs['force'] == 'False':
-            result.append(extract_quotes(json_response['quotes']))
+        if kwargs["force"] == "False":
+            result.append(extract_quotes(json_response["quotes"]))
         return result

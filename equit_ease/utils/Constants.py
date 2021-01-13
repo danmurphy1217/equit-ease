@@ -34,7 +34,7 @@ class Constants:
         "underline": Formatter.underline,
         "align": Formatter.align,
         "split": Formatter.split_at,
-        "capitalize": Formatter.to_upper
+        "capitalize": Formatter.to_upper,
     }
 
     # intermediary data struct used to map yahoo finance columns -> dataclass names.
