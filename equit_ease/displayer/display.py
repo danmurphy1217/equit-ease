@@ -239,7 +239,7 @@ class QuoteDisplayer(Displayer):
 
         :returns result -> ``str``: a string representation of the key-value pair.
         """
-        formatted_key = " ".join(self.set_formatting(key, "bold").split("_"))
+        formatted_key = self.set_formatting(key,  ["split", "capitalize", "bold"])
         formatted_value = self.set_formatting(value, ["color", "bold", "underline"])
         result = self.set_formatting(f"{formatted_key}: {formatted_value}\n", "align")
         return result
