@@ -39,7 +39,7 @@ class Constants:
 
     # intermediary data struct used to map yahoo finance columns -> dataclass names.
     yahoo_finance_column_mappings = {
-        "previous_close": "regularMarketPreviousClose",
+        "close": "regularMarketPreviousClose",
         "open": "regularMarketOpen",
         "bid": "bid",
         "ask": "ask",
@@ -58,4 +58,13 @@ class Constants:
         "next_dividend_date": "dividendDate",
     }
 
-    # https://query1.finance.yahoo.com/v8/finance/chart/T?region=US&lang=en-US&includePrePost=false&interval=1d&range=6mo
+    default_display_data = [
+        'close',
+        'open',
+        'bid',
+        'ask',
+        'intra_day_range',
+        'market_volume',
+        'market_cap',
+        'next_dividend_date'
+    ]
