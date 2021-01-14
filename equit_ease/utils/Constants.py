@@ -59,12 +59,12 @@ class Constants:
     }
 
     default_display_data = [
-        'close',
-        'open',
-        'bid',
-        'ask',
-        'intra_day_range',
-        'market_volume',
-        'market_cap',
-        'next_dividend_date'
+        "close",
+        "open",
+        "bid",
+        "ask",
+        "intra_day_range",
+        "market_volume",
+        "market_cap",
+        "next_dividend_date",
     ]
