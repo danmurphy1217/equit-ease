@@ -4,6 +4,8 @@ import os
 import dataclasses
 from typing import Any, List, Tuple, Set
 
+from requests.api import head
+
 from equit_ease.datatypes.equity_meta import EquityMeta
 from equit_ease.parser.parse import Parser
 from equit_ease.displayer.format import Formatter
@@ -48,7 +50,7 @@ class ChartDisplayer(Displayer):
 class QuoteDisplayer(Displayer):
     """contains methods used solely for the displayment of quote data."""
 
-    def stringify(self: QuoteDisplayer) -> str:
+    def tabularize(self: QuoteDisplayer) -> str:
         """
         str representation of the quote meta-data.
 
@@ -56,14 +58,32 @@ class QuoteDisplayer(Displayer):
         """
         dataclass_as_dict = dataclasses.asdict(self.data)
 
-        s = """\n"""
-        fields = dataclasses.fields(EquityMeta)
-        field_names = [field.name for field in fields]
+        row_one = []
+        row_two = []
+        padding_sizes = []
 
         for key, value in dataclass_as_dict.items():
             if key in Constants.default_display_data:
-                s += self.__repr__(key, value)
-        return s
+                max_padding = len(key) if len(key) > len(str(value)) else len(str(value))
+                row_one.append(key), row_two.append(value)
+                padding_sizes.append(max_padding)
+
+
+        return self.tableify(row_one, padding_sizes), self.tableify(row_two, padding_sizes)
+    
+    def tableify(self: QuoteDisplayer, row, padding_size: List[int]):
+        r = " | "
+        for i, item in enumerate(row):
+            padding = padding_size[i]
+            # print(padding, len(str(item)), " "*(padding), padding - len(str(item)), item)
+            r += " "*(padding - len(str(item))) + str(item) + " | "
+        return self._build_columns(r), r
+    
+    def _build_columns(self: QuoteDisplayer, row: List[str]):
+        header = ""
+        for _ in range(len(row)):
+            header += "-"
+        return header
 
     def __repr__(self, key: str, value: Any) -> str:
         """
