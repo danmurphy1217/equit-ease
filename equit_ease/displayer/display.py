@@ -74,8 +74,20 @@ class QuoteDisplayer(Displayer):
     
     def _build_table(self: QuoteDisplayer, padding_size: List[int], **kwargs):
 
-        def build_rows():
-            return
+        def build_column_separators(row: List[str], padding: List[str]):
+            """
+            build the separators that exist between each column.
+            
+            :param: 
+            :returns result -> :
+
+            :example:
+            """
+            formatted_row = " | "
+            for i, item in enumerate(row):
+                padding = padding_size[i]
+                formatted_row += " "*(padding - len(str(item))) + str(item) + " | "
+            return formatted_row
         
         def build_row_separators(row: List[str]):
             """
@@ -83,18 +95,22 @@ class QuoteDisplayer(Displayer):
 
             :param row -> ``List[str]``: the row used to determine the length of the separator.
             :returns result -> ``str``: a string len(row) long used as the separator.
+
+            :example:
+                1. 
+                    >>> build_row_sepaarators(5)
+                    -----
+                2.
+                    >>> build_row_sepaarators(10)
+                    ----------
             """
             result = "-"*(len(row))
             return result
             
-        r = " | "
         rows = kwargs['rows']
-        
         for row in rows:
-            for i, item in enumerate(row):
-                padding = padding_size[i]
-                r += " "*(padding - len(str(item))) + str(item) + " | "
-            return build_row_separators(r), r
+            formatted_row = build_column_separators(row, padding_size)
+            return build_row_separators(formatted_row), formatted_row
     
 
     def __repr__(self, key: str, value: Any) -> str:
