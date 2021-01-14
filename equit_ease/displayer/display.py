@@ -69,15 +69,18 @@ class QuoteDisplayer(Displayer):
                 padding_sizes.append(max_padding)
 
 
-        return self.tableify(row_one, padding_sizes), self.tableify(row_two, padding_sizes)
+        return self._build_table(padding_sizes, rows=[row_one]), self._build_table(padding_sizes, rows=[row_two])
     
-    def tableify(self: QuoteDisplayer, row, padding_size: List[int]):
+    def _build_table(self: QuoteDisplayer, padding_size: List[int], **kwargs):
         r = " | "
-        for i, item in enumerate(row):
-            padding = padding_size[i]
-            # print(padding, len(str(item)), " "*(padding), padding - len(str(item)), item)
-            r += " "*(padding - len(str(item))) + str(item) + " | "
-        return self._build_columns(r), r
+        rows = kwargs.get('rows', None)
+        styles = kwargs.get('styles', None)
+        for row in rows:
+            for i, item in enumerate(row):
+                padding = padding_size[i]
+                # print(padding, len(str(item)), " "*(padding), padding - len(str(item)), item)
+                r += " "*(padding - len(str(item))) + str(item) + " | "
+            return self._build_columns(r), r
     
     def _build_columns(self: QuoteDisplayer, row: List[str]):
         header = ""
