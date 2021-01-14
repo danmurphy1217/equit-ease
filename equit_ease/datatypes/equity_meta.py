@@ -10,7 +10,7 @@ class EquityMeta:
     about a stock (bid, ask, open, close, etc...)
     """
 
-    previous_close: float  # previous days closing stock price
+    close: float  # previous days closing stock price
     open: float  # stock price at open
     bid: float  # highest price a buyer will pay
     ask: float  # lowest price a seller will accept

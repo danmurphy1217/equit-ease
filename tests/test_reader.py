@@ -13,7 +13,7 @@ class TestReaderMethods(unittest.TestCase):
 
         def set_up_reader_co(reader: Reader) -> Reader:
             reader.build_company_lookup_url()
-            long_name, ticker = reader.get_equity_company_data()
+            long_name, ticker = reader.get_equity_company_data(force=True)
             reader.ticker = ticker
             reader.name = long_name
 
@@ -23,7 +23,7 @@ class TestReaderMethods(unittest.TestCase):
 
         def set_up_reader_tick(reader: Reader) -> Reader:
             reader.build_company_lookup_url()
-            long_name, ticker = reader.get_equity_company_data()
+            long_name, ticker = reader.get_equity_company_data(force=True)
             reader.ticker = ticker
             reader.name = long_name
 
@@ -81,7 +81,7 @@ class TestReaderMethods(unittest.TestCase):
             reader = Reader(ticker_to_search)
 
             reader.build_company_lookup_url()
-            long_name, ticker = reader.get_equity_company_data()
+            long_name, ticker = reader.get_equity_company_data(force=True)
             reader.ticker = ticker
             reader.name = long_name
 
@@ -123,7 +123,7 @@ class TestReaderMethods(unittest.TestCase):
             reader = Reader(ticker_to_search)
 
             reader.build_company_lookup_url()
-            long_name, ticker = reader.get_equity_company_data()
+            long_name, ticker = reader.get_equity_company_data(force=True)
             reader.ticker = ticker
             reader.name = long_name
 
@@ -169,13 +169,13 @@ class TestReaderMethods(unittest.TestCase):
         If no values are returned, a ``ValueError`` is thrown.
         """
         reader = self.reader_co
-        company_equity_data_one = reader.get_equity_company_data()
+        company_equity_data_one = reader.get_equity_company_data(force=True)
 
         self.assertTrue(company_equity_data_one[0] == reader.name)
         self.assertTrue(company_equity_data_one[1] == reader.ticker)
 
         reader_two = self.reader_tick
-        company_equity_data_two = reader_two.get_equity_company_data()
+        company_equity_data_two = reader_two.get_equity_company_data(force=True)
 
         self.assertTrue(company_equity_data_two[0] == reader_two.name)
         self.assertTrue(company_equity_data_two[1] == reader_two.ticker)
