@@ -70,8 +70,16 @@ class QuoteDisplayer(Displayer):
                 row_one.append(formatted_key), row_two.append(value)
                 padding_sizes.append(max_padding)
 
+        def aggregate(*args):
+            result = []
+            for arg in args:
+                for separator in arg:
+                    result.append(separator)
+            return result
 
-        return self._build_table(padding_sizes, rows=[row_one]), self._build_table(padding_sizes, rows=[row_two])
+        return (
+            aggregate(self._build_table(padding_sizes, rows=[row_one]), self._build_table(padding_sizes, rows=[row_two]))
+        )
     
     def _build_table(self: QuoteDisplayer, padding_size: List[int], **kwargs):
 
@@ -120,9 +128,11 @@ class QuoteDisplayer(Displayer):
             return result
             
         rows = kwargs['rows']
+
         for row in rows:
             formatted_row = build_column_separators(row, padding_size)
-            return build_row_separators(formatted_row), formatted_row
+            formatted_col = build_row_separators(formatted_row)
+            return formatted_col, formatted_row
     
 
     def __repr__(self, key: str, value: Any) -> str:
@@ -133,6 +143,12 @@ class QuoteDisplayer(Displayer):
         :param value -> ``str``: a value associated with ``key``.
 
         :returns result -> ``str``: a string representation of the key-value pair.
+
+        :example:
+            1. 
+                >>> __repr__('hello_world', 'hi!')
+                    Hello World: *hi!* # the key is split at '_' and capitalized, the value is underlined and bolded (color not shown).
+                                 ---
         """
         formatted_key = self.set_formatting(key, ["split", "capitalize", "bold"])
         formatted_value = self.set_formatting(value, ["color", "bold", "underline"])
