@@ -78,8 +78,14 @@ class QuoteDisplayer(Displayer):
             return
         
         def build_row_separators(row: List[str]):
-            """"""
-            return "-"*(len(row))
+            """
+            build the separators that exist between each row.
+
+            :param row -> ``List[str]``: the row used to determine the length of the separator.
+            :returns result -> ``str``: a string len(row) long used as the separator.
+            """
+            result = "-"*(len(row))
+            return result
             
         r = " | "
         rows = kwargs['rows']
