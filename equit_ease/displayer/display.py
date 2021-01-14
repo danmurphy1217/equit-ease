@@ -77,11 +77,9 @@ class QuoteDisplayer(Displayer):
         def build_rows():
             return
         
-        def build_columns(row: List[str]):
-            header = ""
-            for _ in range(len(row)):
-                header += "-"
-            return header
+        def build_row_separators(row: List[str]):
+            """"""
+            return "-"*(len(row))
             
         r = " | "
         rows = kwargs['rows']
@@ -90,7 +88,7 @@ class QuoteDisplayer(Displayer):
             for i, item in enumerate(row):
                 padding = padding_size[i]
                 r += " "*(padding - len(str(item))) + str(item) + " | "
-            return build_columns(r), r
+            return build_row_separators(r), r
     
 
     def __repr__(self, key: str, value: Any) -> str:
