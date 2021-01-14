@@ -64,6 +64,7 @@ class QuoteDisplayer(Displayer):
 
         for key, value in dataclass_as_dict.items():
             if key in Constants.default_display_data:
+                
                 max_padding = len(key) if len(key) > len(str(value)) else len(str(value))
                 row_one.append(key), row_two.append(value)
                 padding_sizes.append(max_padding)
@@ -72,21 +73,25 @@ class QuoteDisplayer(Displayer):
         return self._build_table(padding_sizes, rows=[row_one]), self._build_table(padding_sizes, rows=[row_two])
     
     def _build_table(self: QuoteDisplayer, padding_size: List[int], **kwargs):
+
+        def build_rows():
+            return
+        
+        def build_columns(row: List[str]):
+            header = ""
+            for _ in range(len(row)):
+                header += "-"
+            return header
+            
         r = " | "
-        rows = kwargs.get('rows', None)
-        styles = kwargs.get('styles', None)
+        rows = kwargs['rows']
+        
         for row in rows:
             for i, item in enumerate(row):
                 padding = padding_size[i]
-                # print(padding, len(str(item)), " "*(padding), padding - len(str(item)), item)
                 r += " "*(padding - len(str(item))) + str(item) + " | "
-            return self._build_columns(r), r
+            return build_columns(r), r
     
-    def _build_columns(self: QuoteDisplayer, row: List[str]):
-        header = ""
-        for _ in range(len(row)):
-            header += "-"
-        return header
 
     def __repr__(self, key: str, value: Any) -> str:
         """
