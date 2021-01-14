@@ -65,8 +65,9 @@ class QuoteDisplayer(Displayer):
         for key, value in dataclass_as_dict.items():
             if key in Constants.default_display_data:
                 
-                max_padding = len(key) if len(key) > len(str(value)) else len(str(value))
-                row_one.append(key), row_two.append(value)
+                formatted_key = self.set_formatting(key, ["split", "capitalize"])
+                max_padding = len(formatted_key) if len(formatted_key) > len(str(value)) else len(str(value))
+                row_one.append(formatted_key), row_two.append(value)
                 padding_sizes.append(max_padding)
 
 
