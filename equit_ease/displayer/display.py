@@ -74,22 +74,33 @@ class QuoteDisplayer(Displayer):
     
     def _build_table(self: QuoteDisplayer, padding_size: List[int], **kwargs):
 
-        def build_column_separators(row: List[str], padding: List[str]):
+        def build_column_separators(row: List[str], padding_sizes: List[str]) -> str:
             """
             build the separators that exist between each column.
             
-            :param: 
-            :returns result -> :
+            :param row -> ``List[str]``: the row to format with separators and spacing.
+            :param padding_sizes -> ``List[str]``: the sizes of padding to assign to each value. 
+                                                   Must be in the same order as the values they should be assigned to.
+            :returns result -> ``str``: the formatted row with '|' separators between each column.
 
             :example:
+
+                    >>> row = [160.8, 160.81, 169.66, 170.0, '159.44 - 178.6199', 12440181, 101560188928, 'N/A']
+                    >>> padding_sizes = [5, 6, 6, 5, 17, 8, 12, 3]
+                    >>> build_column_separators(row, padding_sizes)
+                        
+                        | 160.8 | 160.81 | 169.66 | 170.0 | 159.44 - 178.6199 | 12440181 | 101560188928 | N/A |
             """
-            formatted_row = " | "
+            result = " | "
             for i, item in enumerate(row):
-                padding = padding_size[i]
-                formatted_row += " "*(padding - len(str(item))) + str(item) + " | "
-            return formatted_row
+                stringified_item = str(item)
+                padding = padding_sizes[i]
+                leading_whitespace = " "*(padding - len(str(item)))
+                result += leading_whitespace + stringified_item + " | "
+
+            return result
         
-        def build_row_separators(row: List[str]):
+        def build_row_separators(row: List[str]) -> str:
             """
             build the separators that exist between each row.
 
