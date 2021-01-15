@@ -10,4 +10,3 @@ def instantiate_test(module_name: ModuleType) -> None:
 instantiate_test(test_reader)
 instantiate_test(test_parser)
 instantiate_test(test_quote_parser)
-instantiate_test(test_chart_parser)
