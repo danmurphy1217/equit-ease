@@ -9,7 +9,7 @@ from equit_ease.utils.Constants import Constants
 
 
 class Parser(Reader):
-    """contains methods utilized by all children classes."""
+    """contains parsing-related methods that are utilized by children classes."""
 
     def __init__(self, equity, data):
         super().__init__(equity)
@@ -63,7 +63,7 @@ class QuoteParser(Parser):
         self, column_mappings: List[str], finalized_data_struct: Dict[str, Any]
     ) -> EquityMeta:
         """
-        initializes EquityMeta dataclass and returns it
+        initializes EquityMeta dataclass and returns it.
 
         :param self -> ``QuoteParser``:
         :param finalized_data_struct -> ``Dict[str, Any]``: the finalized data structure built from _build_dict_repr
@@ -97,7 +97,7 @@ class ChartParser(Parser):
 
         :returns result -> ``List[float]``
         """
-        # TODO: can I do this more cleanly?
+        # TODO: is there a better approach for 'standardization'? Is this approach dirtying the data?
         remove_none_types = [item for item in item_to_standardize if item is not None]
         avg_of_filtered_items = sum(remove_none_types) / len(remove_none_types)
 

@@ -1,14 +1,8 @@
 from __future__ import annotations
-from datetime import datetime
-import os
 import dataclasses
-from typing import Any, List, Tuple, Set
+from typing import Any, List
 
-from requests.api import head
-
-from equit_ease.datatypes.equity_meta import EquityMeta
 from equit_ease.parser.parse import Parser
-from equit_ease.displayer.format import Formatter
 from equit_ease.utils.Constants import Constants
 
 
@@ -38,13 +32,12 @@ class Displayer(Parser):
         return result
 
 
-class ChartDisplayer(Displayer):
+class HistoricalDisplayer(Displayer):
     """"contains methods used solely for the displayment of the chart data."""
 
-    def __init__(self, x_axes, y_axes, title):
-        self.x_axes = x_axes
-        self.y_axes = y_axes
-        self.title = title
+    def p(self: HistoricalDisplayer) -> str:
+        return self.data
+
 
 
 class QuoteDisplayer(Displayer):

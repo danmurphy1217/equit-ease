@@ -6,8 +6,8 @@ from typing import Tuple, Dict
 class EquityMeta:
     """
     Intermediary data structure utilized for the transportation of Equity Quote metadata
-    during the execution of the program. This data is used to display useful infromation
-    about a stock (bid, ask, open, close, etc...)
+    during the execution of the program. This data is used to display useful information
+    about a stock (bid, ask, open, close, etc...) in the terminal.
     """
 
     close: float  # previous days closing stock price

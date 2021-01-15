@@ -13,8 +13,8 @@ class Reader:
     There is no parsing, cleaning or structuring done in this class. It's only purpose is to validate the input, send a
     request to an endpoint, verify the responses validity, and return it.
 
-    This implementation follows the Builder design pattern, where the construction of a complex object is separated from its
-    representations. In this specific use case, the data is simply requested for, but there is no parsing or re-structuring.
+    This implementation aims to follow the Builder design pattern, where the construction of a complex object is separated from 
+    its representations. In this specific use case, the data is simply requested for, but there is no parsing or re-structuring.
     That is left to the `Parser` class. This makes it easy for the `Reader` class to be reused, amongst other things.
     """
 
@@ -32,12 +32,14 @@ class Reader:
             see ``build_equity_url`` for what the formatted URL should look like.
         )
 
-        :returns -> ``Dict[str, Any]``: JSON response object from yahoo finance.
+        :returns result -> ``Dict[str, Any]``: JSON response object from yahoo finance.
         """
         response = requests.get(y_finance_formatted_url)
         response.raise_for_status()
 
-        return response.json()
+        result = response.json()
+
+        return result
 
     @staticmethod
     def _extract_data_from(json_data: Dict[str, Any], key_to_extract: str) -> Any:
@@ -100,7 +102,7 @@ class Reader:
         :returns -> ``str``: the formatted URL used to retrieve equity meta-data from yahoo finance.
         """
         base_quote_url = Constants.yahoo_finance_base_quote_url
-        # TODO: this will be more robust based off args that can be passed via command-line
+        # TODO: this could be more robust based off args that can be passed via command-line
         result = base_quote_url + f"?symbols={self.__ticker}"
 
         self.quote_url = result
@@ -115,7 +117,6 @@ class Reader:
         :return result -> ``str``: the URL to use for self._get()
         """
         base_company_url = Constants.yahoo_finance_co_lookup
-        result = base_company_url + "+".join(self.equity.split(" "))
 
         def is_valid(equity: requests.get) -> bool:
             """
@@ -132,6 +133,19 @@ class Reader:
             json_response = requests.get(equity).json()
 
             return json_response["quotes"] != []
+        
+        def build_equity_param() -> str:
+            """
+            local scope function for building the equity param for the GET request.
+
+            :returns result -> ``str``: the equity param formatted for the GET request.
+            """
+            split_equity = self.equity.split(" ")
+            result = "+".join(split_equity)
+
+            return result
+        
+        result = base_company_url + build_equity_param()
 
         if is_valid(result):
             self.company_url = result
@@ -167,9 +181,6 @@ class Reader:
 
         :param self -> ``Reader``:
         :returns result -> ``Dict[str, Any]``: Dict containing short name and ticker symbol data.
-
-        #TODO: when CLI is setup, lets take the list of companies returned from the reverse lookup and allow the user to select which one they want to see.
-        # ! kinda like how GitHub offers various authentication options and you get to choose.
         """
         json_response = self._get(self.company_url)
 
