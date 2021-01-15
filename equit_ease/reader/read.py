@@ -85,7 +85,35 @@ class Reader:
         :param self -> ``Reader``:
         :returns -> ``str``: the formatted URL used to retrieve the equities chart data from yahoo finance.
         """
+        def build_params(**kwargs) -> str:
+            """
+            build params for the GET /chart URL.
+
+            :returns result -> ``str``: the params to be appended to the URL.
+            """
+            result = "?"
+            list_of_param_tuples = list(kwargs.items())
+
+            for key, value in list_of_param_tuples:
+                param = f"{key}={value}" + "&" if key != list_of_param_tuples[-1][0] else f"{key}={value}"
+                result += param
+            return result
+        
+        base_params = {"region":'US', "lang":'en-US', "includePrePost":'false', "interval":'1d', "useYfid":'true', "corsDomain":'finance.yahoo.com'}
+
+        one_year_params = build_params(**base_params, range='1y')
+        six_month_params = build_params(**base_params, range='6mo')
+        three_month_params = build_params(**base_params, range='3mo')
+        one_month_params = build_params(**base_params, range='1mo')
+        five_day_params = build_params(**base_params, range='5d')
+
+
         base_chart_url = Constants.yahoo_finance_base_chart_url
+        print(base_chart_url + self.__ticker + one_year_params)
+        print(base_chart_url + self.__ticker + six_month_params)
+        print(base_chart_url + self.__ticker + three_month_params)
+        print(base_chart_url + self.__ticker + one_month_params)
+        print(base_chart_url + self.__ticker + five_day_params)
         # TODO: this will be more robust based off args that can be passed via command-line
         result = base_chart_url + self.__ticker
 
