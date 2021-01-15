@@ -35,9 +35,6 @@ class Displayer(Parser):
 class HistoricalDisplayer(Displayer):
     """"contains methods used solely for the displayment of the chart data."""
 
-    def p(self: HistoricalDisplayer) -> str:
-        return self.data
-
 
 
 class QuoteDisplayer(Displayer):
