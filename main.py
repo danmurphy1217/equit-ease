@@ -1,6 +1,6 @@
 from equit_ease.reader.read import Reader
 from equit_ease.parser.parse import QuoteParser, ChartParser
-from equit_ease.displayer.display import QuoteDisplayer, HistoricalDisplayer
+from equit_ease.displayer.display import QuoteDisplayer, TrendsDisplayer
 
 import argparse
 from PyInquirer import prompt, Separator
@@ -66,15 +66,17 @@ if __name__ == "__main__":
         timestamp_data,
     ) = chart_parser.extract_equity_chart_data()
 
-    # quote_displayer = QuoteDisplayer(reader.equity, quote_data)
-    # table = quote_displayer.tabularize()
-    # for row in table:
-    #     print(row)
+    quote_displayer = QuoteDisplayer(reader.equity, quote_data)
+    table = quote_displayer.tabularize()
+    for row in table:
+        print(row)
 
-    historical_displayer = HistoricalDisplayer(reader.equity, equity_chart_data)
-
-    print(historical_displayer.p())
-
+    historical_displayer = TrendsDisplayer(reader)
+    equity_one_year_percentage_change = historical_displayer.display_historical_price_trends("chart_one_year_url")
+    equity_six_months_percentage_change = historical_displayer.display_historical_price_trends("chart_six_months_url")
+    equity_three_months_percentage_change = historical_displayer.display_historical_price_trends("chart_three_months_url")
+    equity_one_month_percentage_change = historical_displayer.display_historical_price_trends("chart_one_month_url")
+    equity_five_days_percentage_change = historical_displayer.display_historical_price_trends("chart_five_days_url")
 
     # quote_contents = stringified_representation.split("\n")
     # if args.out:
