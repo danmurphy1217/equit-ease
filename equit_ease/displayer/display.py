@@ -33,7 +33,7 @@ class Displayer(Parser):
         return result
 
 
-class HistoricalDisplayer(Displayer):
+class TrendsDisplayer(Displayer):
     """"contains methods used solely for the displayment of the chart data."""
 
     def __init__(self, reader):
@@ -43,7 +43,7 @@ class HistoricalDisplayer(Displayer):
         self.chart_one_month_url = reader.chart_one_month_url
         self.chart_five_days_url = reader.chart_five_days_url
 
-    def display_historical(self, instance_var_to_access: str) -> str:
+    def display_historical_price_trends(self, instance_var_to_access: str) -> str:
         """
         Given a valid class instance variable, retrieve it and use it's
         value to send a GET request to yahoo finance.
@@ -70,8 +70,21 @@ class HistoricalDisplayer(Displayer):
             num_weeks = weeks_per_month*num_months_to_retrieve
             num_trading_days = trading_days_per_week*num_weeks
 
-            return one_year_data[-num_trading_days:] # slice off the previous ``num_trading_days``
+            extracted_trading_day_data = one_year_data[-num_trading_days:] # slice off the previous ``num_trading_days``
+            return get_percentage_change(extracted_trading_day_data[0], extracted_trading_day_data[-1])
+        
+        def get_percentage_change(start_value: int or float, end_value: int or float) -> float:
+            """
+            calculate the percentage change from the beginning and ending values of a series.
 
+            :param start_value -> ``int`` or ``float``: the starting value in the series.
+            :param end_value -> ``int`` or ``float``: the ending value in the series.
+
+            :returns result -> ``float``: the percentage change.
+            """
+            print(start_value, end_value)
+            result = ((end_value - start_value) / (start_value))*100
+            return result
 
         attr_data = getattr(self, instance_var_to_access, None)
         if (attr_data) and (re.match(r"^(https|http)", attr_data)):
