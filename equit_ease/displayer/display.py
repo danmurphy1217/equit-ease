@@ -67,8 +67,8 @@ class HistoricalDisplayer(Displayer):
             if num_months_to_retrieve > 12:
                 raise ValueError("Number of months to extract must be less than or equal to 12.")
 
-            num_weeks_in_six_months = weeks_per_month*num_months_to_retrieve
-            num_trading_days = trading_days_per_week*num_weeks_in_six_months
+            num_weeks = weeks_per_month*num_months_to_retrieve
+            num_trading_days = trading_days_per_week*num_weeks
 
             return one_year_data[-num_trading_days:] # slice off the previous ``num_trading_days``
 
