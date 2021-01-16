@@ -1,5 +1,5 @@
 from __future__ import annotations
-from argparse import ArgumentError
+import re
 import dataclasses
 from typing import Any, List
 
@@ -53,14 +53,11 @@ class HistoricalDisplayer(Displayer):
         :returns result -> ``str``: _TBD_
         """
         attr_data = getattr(self, instance_var_to_access, None)
-        return attr_data if attr_data else ArgumentError(f"Invalid Class Instance Variable. {instance_var_to_access} does not exist.")
-        # return self._get(self.chart_six_months_url)
-    
-    # def display_one_month_avg(self):
-    #     """"""
-    #     return self._get(self.chart_one_month_url)
-
-
+        if attr_data:
+            get_request_response = self._get(attr_data)
+            return get_request_response
+        else:
+            raise ValueError(f"Invalid Class Instance Variable. {instance_var_to_access} does not exist.")
 
 class QuoteDisplayer(Displayer):
     """contains methods used solely for the displayment of quote data."""
