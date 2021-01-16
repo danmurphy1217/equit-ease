@@ -43,7 +43,7 @@ class TrendsDisplayer(Displayer):
         self.chart_one_month_url = reader.chart_one_month_url
         self.chart_five_days_url = reader.chart_five_days_url
 
-    def display_historical_price_trends(self, instance_var_to_access: str) -> str:
+    def build_historical_price_trends(self, instance_var_to_access: str) -> str:
         """
         Given a valid class instance variable, retrieve it and use it's
         value to send a GET request to yahoo finance.
@@ -78,6 +78,48 @@ class TrendsDisplayer(Displayer):
             return get_percentage_change(time_series_initial_open, time_series_final_close, 3)
         else:
             raise ValueError(f"Invalid Class Instance Variable. {instance_var_to_access} does not exist.")
+    
+    @staticmethod
+    def _build_descriptive_word_for(equity_percent_change: float) -> str:
+        """
+        dynamically builds a descriptive word ["up" or "down"] based on the
+        value of the percent change.
+
+        If the percent change for an equity is greater than 0, the descriptive word
+        is "up". If the percent change for an equity is less than 0, the descriptive 
+        word is "down". Lastly, if the percent change for an equity is 0, the 
+        descriptive word is "unchanged".
+        
+        :param self -> ``TrendsDisplayer``:
+        :param equity_percent_change -> float: the percent change for an equity as calculated by 
+        ``self.get_percentage_change``.
+
+        :returns result -> ``str``: the descriptive word.
+        """
+        result = ""
+
+        if equity_percent_change > 0:
+            result = "up"
+        elif equity_percent_change < 0:
+            result = "down"
+        else:
+            result = "unchanged"
+        
+        return result
+    
+    def display(self, percentage_change: float, timeframe_descriptor: str) -> None:
+        """
+        display trends datapoints to the console.
+        
+        :param self -> ``TrendsDisplayer``:
+        :param percentage_change -> ``float``: the percentage change in the price of an equity.
+        :param timeframe_descriptor -> ``str``: a descriptor of the timeframe which is appended to the 
+                                                end of the base_sentence.
+
+        :returns ``None``: rather than returning, prints to the console.
+        """
+        descriptive_word = self._build_descriptive_word_for(percentage_change)
+        print(f"\t{descriptive_word} {percentage_change}% in the past {timeframe_descriptor}.")
 
 class QuoteDisplayer(Displayer):
     """contains methods used solely for the displayment of quote data."""
