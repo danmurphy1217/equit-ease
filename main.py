@@ -4,18 +4,22 @@ from equit_ease.displayer.display import QuoteDisplayer, TrendsDisplayer
 
 import argparse
 from PyInquirer import prompt, Separator
+import os
+from pathlib import Path
+import re
 
-
-parser = argparse.ArgumentParser(description="Access stock data from the command line.")
+parser = argparse.ArgumentParser(description="The easiest way to access stock market data from the command line.")
 parser.add_argument(
-    "--equity", "-e", type=str, required=True, help="the equity to return data for."
+    "config",
+    type=str,
+    nargs="?",
+    help="create lists of stocks for seamless future retrieval." 
 )
 parser.add_argument(
-    "--out",
-    "-o",
+    "--equity", 
+    "-e",
     type=str,
-    required=False,
-    help="send data printed to STDOUT to a file.",
+    help="the equity to retrieve data for."
 )
 parser.add_argument(
     "--force",
@@ -24,63 +28,124 @@ parser.add_argument(
     default=True,
     help="If `False`, shows a list of equities matching the value passed to `--equity`. This is useful if you want to ensure that the data returned matches the equity you are searching for. If `True` (default), sends a request based off the value specified with `--equity`.",
 )
+parser.add_argument(
+    "--list", 
+    "-l",
+    type=str,
+    help="the equity to retrieve data for."
+)
 
 args = parser.parse_args()
 
 if __name__ == "__main__":
-    reader = Reader(args.equity)
-    reader.build_company_lookup_url()
-    if args.force == "False":
-        long_name, ticker, choices = reader.get_equity_company_data(force=args.force)
-        questions = [
-            {
-                "type": "list",
-                "name": "theme",
-                "message": "Select The Correct Equity:",
-                "choices": choices,
-            }
+    if args.config:
+       questions = [
+           {
+               "type": "input",
+               "name": "list_name",
+               "message": "List Name:"
+            },
+           {
+               "type": "input",
+               "name": "equities_in_list",
+               "message": "Equities to include in list:"
+            },
+
         ]
+       answers = prompt(questions, style=None)
+       user_home_dir = os.environ.get("HOME")
+       equit_ease_dir_path = os.path.join(user_home_dir, ".equit_ease")
+       os_agnostic_path = Path(equit_ease_dir_path)
+       config_file_path = Path(os.path.join(equit_ease_dir_path, "lists"))
 
-        answers = prompt(questions, style=None)
-    else:
-        long_name, ticker = reader.get_equity_company_data(force=args.force)
+       if not os.path.exists(os_agnostic_path):
+           os_agnostic_path.mkdir() # create .equit_ease dir in $HOME
+           config_file_path.touch() # create config file
+           with open(config_file_path, "w") as f:
+               init_list_name = answers["list_name"]
+               init_equity_names = answers["equities_in_list"]
+               contents_for_file = f'''[{init_list_name}]\nequity_names = {init_equity_names}'''
+               f.write(contents_for_file)
+       else:
+           with open(config_file_path, "a") as f:
+               list_name = answers["list_name"]
+               equity_names = answers["equities_in_list"]
+               contents_for_file = f'''\n[{list_name}]\nequity_names = {equity_names}'''
+               f.write(contents_for_file)
+    elif args.equity:
+        reader = Reader(args.equity)
+        reader.build_company_lookup_url()
+        if args.force == "False":
+            long_name, ticker, choices = reader.get_equity_company_data(force=args.force)
+            questions = [
+                {
+                    "type": "list",
+                    "name": "Equity_Name",
+                    "message": "Select The Correct Equity:",
+                    "choices": choices,
+                }
+            ]
 
-    reader.ticker = ticker
-    reader.name = long_name
+            answers = prompt(questions, style=None)
+        else:
+            long_name, ticker = reader.get_equity_company_data(force=args.force)
 
-    reader.build_equity_quote_url()
-    reader.build_equity_chart_url()
+        reader.ticker = ticker
+        reader.name = long_name
 
-    equity_quote_data = reader.get_equity_quote_data()
-    equity_chart_data = reader.get_equity_chart_data()
+        reader.build_equity_quote_url()
+        reader.build_equity_chart_url()
 
-    quote_parser = QuoteParser(equity=reader.equity, data=equity_quote_data)
-    chart_parser = ChartParser(equity=reader.equity, data=equity_chart_data)
-    quote_data = quote_parser.extract_equity_meta_data()
-    (
-        low_equity_data,
-        high_equity_data,
-        open_equity_data,
-        close_equity_data,
-        volume_equity_data,
-        timestamp_data,
-    ) = chart_parser.extract_equity_chart_data()
+        equity_quote_data = reader.get_equity_quote_data()
+        equity_chart_data = reader.get_equity_chart_data()
 
-    quote_displayer = QuoteDisplayer(reader.equity, quote_data)
-    table = quote_displayer.tabularize()
-    for row in table:
-        print(row)
+        quote_parser = QuoteParser(equity=reader.equity, data=equity_quote_data)
+        chart_parser = ChartParser(equity=reader.equity, data=equity_chart_data)
+        quote_data = quote_parser.extract_equity_meta_data()
 
-    historical_displayer = TrendsDisplayer(reader)
-    equity_one_year_percentage_change = historical_displayer.display_historical_price_trends("chart_one_year_url")
-    equity_six_months_percentage_change = historical_displayer.display_historical_price_trends("chart_six_months_url")
-    equity_three_months_percentage_change = historical_displayer.display_historical_price_trends("chart_three_months_url")
-    equity_one_month_percentage_change = historical_displayer.display_historical_price_trends("chart_one_month_url")
-    equity_five_days_percentage_change = historical_displayer.display_historical_price_trends("chart_five_days_url")
+        quote_displayer = QuoteDisplayer(reader.equity, quote_data)
+        table = quote_displayer.tabularize()
 
-    # quote_contents = stringified_representation.split("\n")
-    # if args.out:
-    #     with open(args.out, "w") as f:
-    #         f.write("\n\t".join(line  for line in quote_contents))
-    # else:
-    #     print("\n\t".join(line  for line in quote_contents))
+        trends_displayer = TrendsDisplayer(reader)
+        equity_one_year_percentage_change = trends_displayer.build_historical_price_trends("chart_one_year_url")
+        equity_six_months_percentage_change = trends_displayer.build_historical_price_trends("chart_six_months_url")
+        equity_three_months_percentage_change = trends_displayer.build_historical_price_trends("chart_three_months_url")
+        equity_one_month_percentage_change = trends_displayer.build_historical_price_trends("chart_one_month_url")
+        equity_five_days_percentage_change = trends_displayer.build_historical_price_trends("chart_five_days_url")
+
+        for row in table:
+            print(row)
+
+        print(f"\n{reader.ticker} is:\n")
+
+        trends_displayer.display(equity_one_year_percentage_change, "year")
+        trends_displayer.display(equity_six_months_percentage_change, "6 months")
+        trends_displayer.display(equity_three_months_percentage_change, "3 months")
+        trends_displayer.display(equity_one_month_percentage_change, "1 month")
+        trends_displayer.display(equity_five_days_percentage_change, "1 week")
+
+        # quote_contents = stringified_representation.split("\n")
+        # if args.out:
+        #     with open(args.out, "w") as f:
+        #         f.write("\n\t".join(line  for line in quote_contents))
+        # else:
+        #     print("\n\t".join(line  for line in quote_contents))
+    elif args.list:
+        list_name = args.list
+        user_home_dir = os.environ.get("HOME")
+        equit_ease_dir_path = os.path.join(user_home_dir, ".equit_ease")
+        config_file_path = Path(os.path.join(equit_ease_dir_path, "lists"))
+        with open(config_file_path, "r") as f:
+            file_contents_lines = f.read().splitlines()
+        
+        for i, line in enumerate(file_contents_lines):
+            if re.search(rf"{list_name}(?=])", line):
+                equity_names_to_search_unformatted = file_contents_lines[i + 1]
+                equity_names_to_search_formatted = equity_names_to_search_unformatted.split(" = ")[-1]
+                #TODO: ensure that input is stripped of any spaces: AAPL,CRM,MSFT,CRWD
+                split_names = lambda name : name.split(",")
+                print(split_names(equity_names_to_search_formatted))
+
+            else:
+                pass
+        # with open(config_file_path)
