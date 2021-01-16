@@ -1,4 +1,5 @@
 from __future__ import annotations
+from argparse import ArgumentError
 import dataclasses
 from typing import Any, List
 
@@ -34,6 +35,30 @@ class Displayer(Parser):
 
 class HistoricalDisplayer(Displayer):
     """"contains methods used solely for the displayment of the chart data."""
+
+    def __init__(self, reader):
+        self.chart_one_year_url = reader.chart_one_year_url
+        self.chart_six_months_url = reader.chart_six_months_url
+        self.chart_three_months_url = reader.chart_three_months_url
+        self.chart_one_month_url = reader.chart_one_month_url
+        self.chart_five_days_url = reader.chart_five_days_url
+
+    def display_historical(self, instance_var_to_access: str) -> str:
+        """
+        Given a valid class instance variable, retrieve it and use it's
+        value to send a GET request to yahoo finance.
+
+        :param instance_var_to_access -> ``str``: a valid class instance variable to access.
+
+        :returns result -> ``str``: _TBD_
+        """
+        attr_data = getattr(self, instance_var_to_access, None)
+        return attr_data if attr_data else ArgumentError(f"Invalid Class Instance Variable. {instance_var_to_access} does not exist.")
+        # return self._get(self.chart_six_months_url)
+    
+    # def display_one_month_avg(self):
+    #     """"""
+    #     return self._get(self.chart_one_month_url)
 
 
 
