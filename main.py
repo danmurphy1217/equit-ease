@@ -63,14 +63,19 @@ if __name__ == "__main__":
            config_file_path.touch() # create config file
            with open(config_file_path, "w") as f:
                init_list_name = answers["list_name"]
-               init_equity_names = answers["equities_in_list"]
-               contents_for_file = f'''[{init_list_name}]\nequity_names = {init_equity_names}'''
+               cleaner = lambda equity_names_list: [name.strip() for name in equity_names_list]
+               equity_names = answers["equities_in_list"]
+               equity_names_formatted = ",".join(cleaner(equity_names.split(",")))
+
+               contents_for_file = f'''[{init_list_name}]\nequity_names = {equity_names_formatted}'''
                f.write(contents_for_file)
        else:
            with open(config_file_path, "a") as f:
+               cleaner = lambda equity_names_list: [name.strip() for name in equity_names_list]
                list_name = answers["list_name"]
                equity_names = answers["equities_in_list"]
-               contents_for_file = f'''\n[{list_name}]\nequity_names = {equity_names}'''
+               equity_names_formatted = ",".join(cleaner(equity_names.split(",")))
+               contents_for_file = f'''\n[{list_name}]\nequity_names = {equity_names_formatted}'''
                f.write(contents_for_file)
     elif args.equity:
         reader = Reader(args.equity)
@@ -144,8 +149,59 @@ if __name__ == "__main__":
                 equity_names_to_search_formatted = equity_names_to_search_unformatted.split(" = ")[-1]
                 #TODO: ensure that input is stripped of any spaces: AAPL,CRM,MSFT,CRWD
                 split_names = lambda name : name.split(",")
-                print(split_names(equity_names_to_search_formatted))
+                equities_to_search = split_names(equity_names_to_search_formatted)
 
+                for equity in equities_to_search:
+                    reader = Reader(equity)
+                    reader.build_company_lookup_url()
+                    if args.force == "False":
+                        long_name, ticker, choices = reader.get_equity_company_data(force=args.force)
+                        questions = [
+                            {
+                                "type": "list",
+                                "name": "Equity_Name",
+                                "message": "Select The Correct Equity:",
+                                "choices": choices,
+                            }
+                        ]
+
+                        answers = prompt(questions, style=None)
+                    else:
+                        long_name, ticker = reader.get_equity_company_data(force=args.force)
+
+                    reader.ticker = ticker
+                    reader.name = long_name
+
+                    reader.build_equity_quote_url()
+                    reader.build_equity_chart_url()
+
+                    equity_quote_data = reader.get_equity_quote_data()
+                    equity_chart_data = reader.get_equity_chart_data()
+
+                    quote_parser = QuoteParser(equity=reader.equity, data=equity_quote_data)
+                    chart_parser = ChartParser(equity=reader.equity, data=equity_chart_data)
+                    quote_data = quote_parser.extract_equity_meta_data()
+
+                    quote_displayer = QuoteDisplayer(reader.equity, quote_data)
+                    table = quote_displayer.tabularize()
+
+                    trends_displayer = TrendsDisplayer(reader)
+                    equity_one_year_percentage_change = trends_displayer.build_historical_price_trends("chart_one_year_url")
+                    equity_six_months_percentage_change = trends_displayer.build_historical_price_trends("chart_six_months_url")
+                    equity_three_months_percentage_change = trends_displayer.build_historical_price_trends("chart_three_months_url")
+                    equity_one_month_percentage_change = trends_displayer.build_historical_price_trends("chart_one_month_url")
+                    equity_five_days_percentage_change = trends_displayer.build_historical_price_trends("chart_five_days_url")
+
+                    for row in table:
+                        print(row)
+
+                    print(f"\n{reader.ticker} is:\n")
+
+                    trends_displayer.display(equity_one_year_percentage_change, "year")
+                    trends_displayer.display(equity_six_months_percentage_change, "6 months")
+                    trends_displayer.display(equity_three_months_percentage_change, "3 months")
+                    trends_displayer.display(equity_one_month_percentage_change, "1 month")
+                    trends_displayer.display(equity_five_days_percentage_change, "1 week")
             else:
                 pass
         # with open(config_file_path)
