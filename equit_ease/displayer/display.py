@@ -52,10 +52,38 @@ class HistoricalDisplayer(Displayer):
 
         :returns result -> ``str``: _TBD_
         """
+        trading_days_per_week = 5
+        weeks_per_month = 4
+
+        def get_historical_data_from(one_year_data: List[int | float], num_months_to_retrieve: int) -> List[int | float]:
+            """
+            extract six months of data from a list containing the previous years worth
+            of data points.
+
+            :param one_year_data -> ``List[int | float]``: a list of the previous years data.
+
+            :return result -> ``List[int | float]``: six previous months of data.
+            """
+            if num_months_to_retrieve > 12:
+                raise ValueError("Number of months to extract must be less than or equal to 12.")
+
+            num_weeks_in_six_months = weeks_per_month*num_months_to_retrieve
+            num_trading_days = trading_days_per_week*num_weeks_in_six_months
+
+            return one_year_data[-num_trading_days:] # slice off the previous ``num_trading_days``
+
+
         attr_data = getattr(self, instance_var_to_access, None)
-        if attr_data:
+        if (attr_data) and (re.match(r"^(https|http)", attr_data)):
             get_request_response = self._get(attr_data)
-            return get_request_response
+            filtered_response_data = get_request_response["chart"]["result"][0]
+            daily_close_data = self._extract_data_from(filtered_response_data["indicators"]["quote"][0], "close")
+
+            return get_historical_data_from(daily_close_data, 12),\
+                   get_historical_data_from(daily_close_data, 6),\
+                   get_historical_data_from(daily_close_data, 3),\
+                   get_historical_data_from(daily_close_data, 1)
+
         else:
             raise ValueError(f"Invalid Class Instance Variable. {instance_var_to_access} does not exist.")
 
