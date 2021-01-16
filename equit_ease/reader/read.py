@@ -85,6 +85,9 @@ class Reader:
         :param self -> ``Reader``:
         :returns -> ``str``: the formatted URL used to retrieve the equities chart data from yahoo finance.
         """
+        base_chart_url = Constants.yahoo_finance_base_chart_url
+        base_params = Constants.chart_url_base_params
+
         def build_params(**kwargs) -> str:
             """
             build params for the GET /chart URL.
@@ -99,25 +102,41 @@ class Reader:
                 result += param
             return result
         
-        base_params = {"region":'US', "lang":'en-US', "includePrePost":'false', "interval":'1d', "useYfid":'true', "corsDomain":'finance.yahoo.com'}
+        def build_url(params: str) -> str:
+            """
+            Given a string of params for the url, builds out the url and 
+            returns it fully-formatted.
+
+            :param params -> ``str``: the params for the URL.
+
+            :returns result -> ``str``: the formatted URL.
+            """
+            base_domain = base_chart_url + self.__ticker
+            result = base_domain + params
+
+            return result
 
         one_year_params = build_params(**base_params, range='1y')
         six_month_params = build_params(**base_params, range='6mo')
         three_month_params = build_params(**base_params, range='3mo')
         one_month_params = build_params(**base_params, range='1mo')
         five_day_params = build_params(**base_params, range='5d')
+        
+        one_year_url = build_url(one_year_params)
+        six_months_url = build_url(six_month_params)
+        three_months_url = build_url(three_month_params)
+        one_month_url = build_url(one_month_params)
+        five_days_url = build_url(five_day_params)
 
-
-        base_chart_url = Constants.yahoo_finance_base_chart_url
-        print(base_chart_url + self.__ticker + one_year_params)
-        print(base_chart_url + self.__ticker + six_month_params)
-        print(base_chart_url + self.__ticker + three_month_params)
-        print(base_chart_url + self.__ticker + one_month_params)
-        print(base_chart_url + self.__ticker + five_day_params)
         # TODO: this will be more robust based off args that can be passed via command-line
         result = base_chart_url + self.__ticker
 
-        self.chart_url = result
+        self.chart_base_url = result
+        self.chart_one_year_url = one_year_url
+        self.chart_six_months_url = six_months_url
+        self.chart_three_months_url = three_months_url
+        self.chart_one_month_url = one_month_url
+        self.chart_five_days_url = five_days_url
         return True
 
     def build_equity_quote_url(self: Reader) -> str:
@@ -186,7 +205,7 @@ class Reader:
 
         :returns -> ``Dict[str, Any]``: JSON object response from Yahoo Finance
         """
-        return self._get(self.chart_url)
+        return self._get(self.chart_base_url)
 
     def get_equity_quote_data(self: Reader) -> str:
         """
