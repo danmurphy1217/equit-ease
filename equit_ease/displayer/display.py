@@ -52,26 +52,6 @@ class TrendsDisplayer(Displayer):
 
         :returns result -> ``str``: _TBD_
         """
-        trading_days_per_week = 5
-        weeks_per_month = 4
-
-        def get_historical_data_from(one_year_data: List[int | float], num_months_to_retrieve: int) -> List[int | float]:
-            """
-            extract six months of data from a list containing the previous years worth
-            of data points.
-
-            :param one_year_data -> ``List[int | float]``: a list of the previous years data.
-
-            :return result -> ``List[int | float]``: six previous months of data.
-            """
-            if num_months_to_retrieve > 12:
-                raise ValueError("Number of months to extract must be less than or equal to 12.")
-
-            num_weeks = weeks_per_month*num_months_to_retrieve
-            num_trading_days = trading_days_per_week*num_weeks
-
-            extracted_trading_day_data = one_year_data[-num_trading_days:] # slice off the previous ``num_trading_days``
-            return get_percentage_change(extracted_trading_day_data[0], extracted_trading_day_data[-1])
         
         def get_percentage_change(start_value: int or float, end_value: int or float) -> float:
             """
@@ -91,12 +71,8 @@ class TrendsDisplayer(Displayer):
             get_request_response = self._get(attr_data)
             filtered_response_data = get_request_response["chart"]["result"][0]
             daily_close_data = self._extract_data_from(filtered_response_data["indicators"]["quote"][0], "close")
-
-            return get_historical_data_from(daily_close_data, 12),\
-                   get_historical_data_from(daily_close_data, 6),\
-                   get_historical_data_from(daily_close_data, 3),\
-                   get_historical_data_from(daily_close_data, 1)
-
+            daily_open_data = self._extract_data_from(filtered_response_data["indicators"]["quote"][0], "open")
+            return get_percentage_change(daily_open_data[0], daily_close_data[-1])
         else:
             raise ValueError(f"Invalid Class Instance Variable. {instance_var_to_access} does not exist.")
 
