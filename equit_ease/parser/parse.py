@@ -87,6 +87,8 @@ class QuoteParser(Parser):
 class ChartParser(Parser):
     """contains methods relating to the parsing of Yahoo Finance Chart data."""
 
+    #!TODO: Neither of these are necessary...
+
     def _standardize(self, item_to_standardize: List[float | None]) -> List[float]:
         """
         retrieves the mean of the items in the list (after removing none types),
@@ -99,6 +101,7 @@ class ChartParser(Parser):
         """
         # TODO: is there a better approach for 'standardization'? Is this approach dirtying the data?
         remove_none_types = [item for item in item_to_standardize if item is not None]
+        print(item_to_standardize)
         avg_of_filtered_items = sum(remove_none_types) / len(remove_none_types)
 
         result = [
@@ -123,6 +126,8 @@ class ChartParser(Parser):
         equity_chart_data_struct = self._build_dict_repr(
             keys_to_extract, json_data_for_extraction
         )
+
+        print(equity_chart_data_struct)
 
         return (
             self._standardize(self._extract_data_from(equity_chart_data_struct, "low")),
