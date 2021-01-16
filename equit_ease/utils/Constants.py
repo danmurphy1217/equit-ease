@@ -8,7 +8,14 @@ class Constants:
     yahoo_finance_base_quote_url = "https://query1.finance.yahoo.com/v7/finance/quote"
     yahoo_finance_co_lookup = "https://query2.finance.yahoo.com/v1/finance/search?q="
 
-    chart_url_base_params = {"region":'US', "lang":'en-US', "includePrePost":'false', "interval":'1d', "useYfid":'true', "corsDomain":'finance.yahoo.com'}
+    chart_url_base_params = {
+        "region": "US",
+        "lang": "en-US",
+        "includePrePost": "false",
+        "interval": "1d",
+        "useYfid": "true",
+        "corsDomain": "finance.yahoo.com",
+    }
 
     yahoo_finance_quote_keys = [
         "regularMarketPreviousClose",

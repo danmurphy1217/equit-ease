@@ -13,7 +13,7 @@ class Reader:
     There is no parsing, cleaning or structuring done in this class. It's only purpose is to validate the input, send a
     request to an endpoint, verify the responses validity, and return it.
 
-    This implementation aims to follow the Builder design pattern, where the construction of a complex object is separated from 
+    This implementation aims to follow the Builder design pattern, where the construction of a complex object is separated from
     its representations. In this specific use case, the data is simply requested for, but there is no parsing or re-structuring.
     That is left to the `Parser` class. This makes it easy for the `Reader` class to be reused, amongst other things.
     """
@@ -98,13 +98,17 @@ class Reader:
             list_of_param_tuples = list(kwargs.items())
 
             for key, value in list_of_param_tuples:
-                param = f"{key}={value}" + "&" if key != list_of_param_tuples[-1][0] else f"{key}={value}"
+                param = (
+                    f"{key}={value}" + "&"
+                    if key != list_of_param_tuples[-1][0]
+                    else f"{key}={value}"
+                )
                 result += param
             return result
-        
+
         def build_url(params: str) -> str:
             """
-            Given a string of params for the url, builds out the url and 
+            Given a string of params for the url, builds out the url and
             returns it fully-formatted.
 
             :param params -> ``str``: the params for the URL.
@@ -116,12 +120,12 @@ class Reader:
 
             return result
 
-        one_year_params = build_params(**base_params, range='1y')
-        six_month_params = build_params(**base_params, range='6mo')
-        three_month_params = build_params(**base_params, range='3mo')
-        one_month_params = build_params(**base_params, range='1mo')
-        five_day_params = build_params(**base_params, range='5d')
-        
+        one_year_params = build_params(**base_params, range="1y")
+        six_month_params = build_params(**base_params, range="6mo")
+        three_month_params = build_params(**base_params, range="3mo")
+        one_month_params = build_params(**base_params, range="1mo")
+        five_day_params = build_params(**base_params, range="5d")
+
         one_year_url = build_url(one_year_params)
         six_months_url = build_url(six_month_params)
         three_months_url = build_url(three_month_params)
@@ -180,7 +184,7 @@ class Reader:
             json_response = requests.get(equity).json()
 
             return json_response["quotes"] != []
-        
+
         def build_equity_param() -> str:
             """
             local scope function for building the equity param for the GET request.
@@ -191,7 +195,7 @@ class Reader:
             result = "+".join(split_equity)
 
             return result
-        
+
         result = base_company_url + build_equity_param()
 
         if is_valid(result):

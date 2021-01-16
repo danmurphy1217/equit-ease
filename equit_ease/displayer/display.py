@@ -52,8 +52,10 @@ class TrendsDisplayer(Displayer):
 
         :returns result -> ``str``: _TBD_
         """
-        
-        def get_percentage_change(start_value: int or float, end_value: int or float, num_decimal_places: 3) -> float:
+
+        def get_percentage_change(
+            start_value: int or float, end_value: int or float, num_decimal_places: 3
+        ) -> float:
             """
             calculate the percentage change from the beginning and ending values of a series.
 
@@ -62,7 +64,7 @@ class TrendsDisplayer(Displayer):
 
             :returns result -> ``float``: the percentage change.
             """
-            percent_chage_formula = ((end_value - start_value) / (start_value))*100
+            percent_chage_formula = ((end_value - start_value) / (start_value)) * 100
             result = round(percent_chage_formula, num_decimal_places)
             return result
 
@@ -70,15 +72,23 @@ class TrendsDisplayer(Displayer):
         if (attr_data) and (re.match(r"^(https|http)", attr_data)):
             get_request_response = self._get(attr_data)
             filtered_response_data = get_request_response["chart"]["result"][0]
-            daily_close_data = self._extract_data_from(filtered_response_data["indicators"]["quote"][0], "close")
-            daily_open_data = self._extract_data_from(filtered_response_data["indicators"]["quote"][0], "open")
+            daily_close_data = self._extract_data_from(
+                filtered_response_data["indicators"]["quote"][0], "close"
+            )
+            daily_open_data = self._extract_data_from(
+                filtered_response_data["indicators"]["quote"][0], "open"
+            )
 
             time_series_initial_open = daily_open_data[0]
             time_series_final_close = daily_close_data[-1]
-            return get_percentage_change(time_series_initial_open, time_series_final_close, 3)
+            return get_percentage_change(
+                time_series_initial_open, time_series_final_close, 3
+            )
         else:
-            raise ValueError(f"Invalid Class Instance Variable. {instance_var_to_access} does not exist.")
-    
+            raise ValueError(
+                f"Invalid Class Instance Variable. {instance_var_to_access} does not exist."
+            )
+
     @staticmethod
     def _build_descriptive_word_for(equity_percent_change: float) -> str:
         """
@@ -86,12 +96,12 @@ class TrendsDisplayer(Displayer):
         value of the percent change.
 
         If the percent change for an equity is greater than 0, the descriptive word
-        is "up". If the percent change for an equity is less than 0, the descriptive 
-        word is "down". Lastly, if the percent change for an equity is 0, the 
+        is "up". If the percent change for an equity is less than 0, the descriptive
+        word is "down". Lastly, if the percent change for an equity is 0, the
         descriptive word is "unchanged".
-        
+
         :param self -> ``TrendsDisplayer``:
-        :param equity_percent_change -> float: the percent change for an equity as calculated by 
+        :param equity_percent_change -> float: the percent change for an equity as calculated by
         ``self.get_percentage_change``.
 
         :returns result -> ``str``: the descriptive word.
@@ -104,22 +114,25 @@ class TrendsDisplayer(Displayer):
             result = "down"
         else:
             result = "unchanged"
-        
+
         return result
-    
+
     def display(self, percentage_change: float, timeframe_descriptor: str) -> None:
         """
         display trends datapoints to the console.
-        
+
         :param self -> ``TrendsDisplayer``:
         :param percentage_change -> ``float``: the percentage change in the price of an equity.
-        :param timeframe_descriptor -> ``str``: a descriptor of the timeframe which is appended to the 
+        :param timeframe_descriptor -> ``str``: a descriptor of the timeframe which is appended to the
                                                 end of the base_sentence.
 
         :returns ``None``: rather than returning, prints to the console.
         """
         descriptive_word = self._build_descriptive_word_for(percentage_change)
-        print(f"\t{descriptive_word} {percentage_change}% in the past {timeframe_descriptor}.")
+        print(
+            f"\t{descriptive_word} {percentage_change}% in the past {timeframe_descriptor}."
+        )
+
 
 class QuoteDisplayer(Displayer):
     """contains methods used solely for the displayment of quote data."""
