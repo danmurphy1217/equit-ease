@@ -53,7 +53,7 @@ class TrendsDisplayer(Displayer):
         :returns result -> ``str``: _TBD_
         """
         
-        def get_percentage_change(start_value: int or float, end_value: int or float) -> float:
+        def get_percentage_change(start_value: int or float, end_value: int or float, num_decimal_places: 3) -> float:
             """
             calculate the percentage change from the beginning and ending values of a series.
 
@@ -62,8 +62,8 @@ class TrendsDisplayer(Displayer):
 
             :returns result -> ``float``: the percentage change.
             """
-            print(start_value, end_value)
-            result = ((end_value - start_value) / (start_value))*100
+            percent_chage_formula = ((end_value - start_value) / (start_value))*100
+            result = round(percent_chage_formula, num_decimal_places)
             return result
 
         attr_data = getattr(self, instance_var_to_access, None)
@@ -72,7 +72,10 @@ class TrendsDisplayer(Displayer):
             filtered_response_data = get_request_response["chart"]["result"][0]
             daily_close_data = self._extract_data_from(filtered_response_data["indicators"]["quote"][0], "close")
             daily_open_data = self._extract_data_from(filtered_response_data["indicators"]["quote"][0], "open")
-            return get_percentage_change(daily_open_data[0], daily_close_data[-1])
+
+            time_series_initial_open = daily_open_data[0]
+            time_series_final_close = daily_close_data[-1]
+            return get_percentage_change(time_series_initial_open, time_series_final_close, 3)
         else:
             raise ValueError(f"Invalid Class Instance Variable. {instance_var_to_access} does not exist.")
 
