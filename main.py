@@ -9,12 +9,13 @@ from equit_ease.reader.read import Reader
 from equit_ease.parser.parse import QuoteParser, UserConfigParser
 from equit_ease.displayer.display import QuoteDisplayer, TrendsDisplayer
 
+
 def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     """
     instantiate the parser object with the necessary arguments.
 
     :param parser -> ``argparse.ArgumentParser``: a parser object with no arguments added.
-    
+
     :returns parser -> ``argparse.ArgumentParser``: a parser object containing the needed arguments.
     """
     parser.add_argument(
@@ -23,7 +24,7 @@ def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         nargs="?",
         help="create a named list of stocks that can easily be retrieved later with the ``--list`` or ``-l`` flag.",
     )
-    
+
     parser.add_argument(
         "--force",
         "-f",
@@ -31,19 +32,25 @@ def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         default="True",
         help="If `False`, shows a list of all equities returned from the reverse lookup and lets you choose which one to retrieve data for. This is useful if you want to ensure that the data returned matches the equity you truly want to search for. If `True` (default), sends a request matching the first ticker returned from the reverse lookup.",
     )
-    
-    parser.add_argument("--equity", "-e", type=str, help="the equity to retrieve data for.")
-    parser.add_argument("--list", "-l", type=str, help="the equity to retrieve data for.")
+
+    parser.add_argument(
+        "--equity", "-e", type=str, help="the equity to retrieve data for."
+    )
+    parser.add_argument(
+        "--list", "-l", type=str, help="the equity to retrieve data for."
+    )
 
     return parser
 
+
 class ArgsHandler:
-    
     def __init__(self, args_data: argparse.Namespace):
         self.args_data = args_data
 
     @staticmethod
-    def _setup_dir_structure(dir_path: Path, list_file_path: Path, answers: PyInquirer.prompt) -> bool:
+    def _setup_dir_structure(
+        dir_path: Path, list_file_path: Path, answers: PyInquirer.prompt
+    ) -> bool:
         """
         make .equit_ease folder in $HOME dir.
 
@@ -51,7 +58,7 @@ class ArgsHandler:
                                   (works on POSIX and Windows)
         :params list_file_path -> ``Path``: file path for the lists ASCII text file.
         :param answers -> ``PyInquirer.prompt``: answers to the prompt.
-        
+
         :returns True -> ``bool``:
         """
         dir_path.mkdir()  # create .equit_ease dir in $HOME
@@ -67,14 +74,14 @@ class ArgsHandler:
             contents_for_file = (
                 f"""[{init_list_name}]\nequity_names = {equity_names_formatted}"""
             )
-            f.write(contents_for_file)    
-        return True 
-    
+            f.write(contents_for_file)
+        return True
+
     @staticmethod
     def _add_to_lists(lists_file_path: Path, answers: PyInquirer.prompt) -> bool:
         """
         if the .equit_ease dir already exists, then append to the
-        lists ASCII text file in the directory (this file is created 
+        lists ASCII text file in the directory (this file is created
         when the dir is created, so it is expected to already exist).
 
         :params lists_file_path -> ``Path``: the path to the `lists` ASCII text file.
@@ -123,7 +130,7 @@ class ArgsHandler:
             self._setup_dir_structure(os_agnostic_path, config_file_path, answers)
         else:
             self._add_to_lists(config_file_path, answers)
-    
+
     def handle_equity(self):
         """
         if the ``--equity`` or ``-e`` flags are specified, the equity name that
@@ -187,8 +194,20 @@ class ArgsHandler:
 
         trends_displayer = TrendsDisplayer(reader)
 
-        trends_to_retrieve = ["chart_one_year_url", "chart_six_months_url", "chart_three_months_url", "chart_one_month_url", "chart_five_days_url"]
-        equity_one_year_percentage_change, equity_six_months_percentage_change, equity_three_months_percentage_change, equity_one_month_percentage_change, equity_five_days_percentage_change = trends_displayer.get_percentage_changes(*trends_to_retrieve)
+        trends_to_retrieve = [
+            "chart_one_year_url",
+            "chart_six_months_url",
+            "chart_three_months_url",
+            "chart_one_month_url",
+            "chart_five_days_url",
+        ]
+        (
+            equity_one_year_percentage_change,
+            equity_six_months_percentage_change,
+            equity_three_months_percentage_change,
+            equity_one_month_percentage_change,
+            equity_five_days_percentage_change,
+        ) = trends_displayer.get_percentage_changes(*trends_to_retrieve)
 
         for row in table:
             print(row)
@@ -201,40 +220,50 @@ class ArgsHandler:
         trends_displayer.display(equity_one_month_percentage_change, "1 month")
         trends_displayer.display(equity_five_days_percentage_change, "1 week")
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-    description="The easiest way to access data about your favorite stocks from the command line."
+        description="The easiest way to access data about your favorite stocks from the command line."
     )
     parser = init_parser(parser=parser)
     args = parser.parse_args()
     args_handler = ArgsHandler(args)
-    
+
     if args.config:
-        if args.config == 'config':
+        if args.config == "config":
             args_handler.handle_config()
         else:
-            parser.error(f"Unrecognized Argument: `{args.config}`. Did you mean `python3 main.py config`?")
+            parser.error(
+                f"Unrecognized Argument: `{args.config}`. Did you mean `python3 main.py config`?"
+            )
 
     elif args.equity:
         args_handler.handle_equity()
 
     elif args.list:
-        user_home_dir = home = str(Path.home()) # same as os.path.expanduser("~")
+        user_home_dir = home = str(Path.home())  # same as os.path.expanduser("~")
         equit_ease_dir = os.path.join(user_home_dir, ".equit_ease")
         lists_file_path = Path(os.path.join(equit_ease_dir, "lists"))
 
         if not os.path.exists(lists_file_path):
-            raise FileNotFoundError("You do not have any lists configured yet. Run ``python3 main.py config`` to setup your first list!")
+            raise FileNotFoundError(
+                "You do not have any lists configured yet. Run ``python3 main.py config`` to setup your first list!"
+            )
         else:
             with open(lists_file_path, "r") as f:
                 file_contents_lines = f.read().splitlines()
 
             equity_list_name = args.list
             user_config = UserConfigParser(equity_list_name, file_contents_lines)
-            list_of_formatted_list_names, string_of_all_formatted_list_names = user_config.format_equity_lists()
+            (
+                list_of_formatted_list_names,
+                string_of_all_formatted_list_names,
+            ) = user_config.format_equity_lists()
 
             if equity_list_name not in list_of_formatted_list_names:
-                raise ValueError(f"'{equity_list_name}' does not exist. Try: {string_of_all_formatted_list_names}")
+                raise ValueError(
+                    f"'{equity_list_name}' does not exist. Try: {string_of_all_formatted_list_names}"
+                )
             else:
                 equities_to_search = user_config.find_match()
 
