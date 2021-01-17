@@ -1,5 +1,4 @@
 from __future__ import annotations
-from os import name
 from typing import Dict, Any
 import requests
 

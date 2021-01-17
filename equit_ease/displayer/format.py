@@ -1,5 +1,3 @@
-import os
-
 from equit_ease.utils.Colors import Colors
 
 
