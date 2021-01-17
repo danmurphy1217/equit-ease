@@ -251,5 +251,7 @@ if __name__ == "__main__":
                     reader = Reader(equity)
                     args_handler.handle_equity(reader)
             else:
-                pass
-        # with open(config_file_path)
+                all_valid_names = filter(re.compile(r"^\[[a-zA-Z0-9]").search, file_contents_lines)
+                clean_names = lambda list_names : [name.strip("[]") for name in list_names]
+                formatted_names = ", ".join(clean_names(list(all_valid_names)))
+                raise ValueError(f"Invalid List Name. Try: {formatted_names}")
