@@ -7,7 +7,7 @@ import re
 
 import PyInquirer
 from equit_ease.reader.read import Reader
-from equit_ease.parser.parse import QuoteParser, ChartParser
+from equit_ease.parser.parse import QuoteParser, UserConfigParser
 from equit_ease.displayer.display import QuoteDisplayer, TrendsDisplayer
 
 def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
@@ -39,9 +39,62 @@ def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     return parser
 
 class ArgsHandler:
-
+    
     def __init__(self, args_data: argparse.Namespace):
         self.args_data = args_data
+
+    @staticmethod
+    def _setup_dir_structure(dir_path: Path, list_file_path: Path, answers: PyInquirer.prompt) -> bool:
+        """
+        make .equit_ease folder in $HOME dir.
+
+        :params dir_path -> ``Path``: a Path object representing an operating system-agnostic path
+                                  (works on POSIX and Windows)
+        :params list_file_path -> ``Path``: file path for the lists ASCII text file.
+        :param answers -> ``PyInquirer.prompt``: answers to the prompt.
+        
+        :returns True -> ``bool``:
+        """
+        dir_path.mkdir()  # create .equit_ease dir in $HOME
+        list_file_path.touch()  # create config file
+        with open(list_file_path, "w") as f:
+            init_list_name = answers["list_name"]
+            cleaner = lambda equity_names_list: [
+                name.strip() for name in equity_names_list
+            ]
+            equity_names = answers["equities_in_list"]
+            equity_names_formatted = ",".join(cleaner(equity_names.split(",")))
+
+            contents_for_file = (
+                f"""[{init_list_name}]\nequity_names = {equity_names_formatted}"""
+            )
+            f.write(contents_for_file)    
+        return True 
+    
+    @staticmethod
+    def _add_to_lists(lists_file_path: Path, answers: PyInquirer.prompt) -> bool:
+        """
+        if the .equit_ease dir already exists, then append to the
+        lists ASCII text file in the directory (this file is created 
+        when the dir is created, so it is expected to already exist).
+
+        :params lists_file_path -> ``Path``: the path to the `lists` ASCII text file.
+        :param answers -> ``PyInquirer.prompt``: answers to the prompt.
+
+        :returns True -> ``bool``:
+        """
+        with open(lists_file_path, "a") as f:
+            cleaner = lambda equity_names_list: [
+                name.strip() for name in equity_names_list
+            ]
+            list_name = answers["list_name"]
+            equity_names = answers["equities_in_list"]
+            equity_names_formatted = ",".join(cleaner(equity_names.split(",")))
+            contents_for_file = (
+                f"""\n[{list_name}]\nequity_names = {equity_names_formatted}"""
+            )
+            f.write(contents_for_file)
+        return True
 
     def handle_config(self: ArgsHandler):
         """
@@ -128,7 +181,6 @@ class ArgsHandler:
         equity_quote_data, equity_chart_data = reader.get_data()
 
         quote_parser = QuoteParser(equity=reader.equity, data=equity_quote_data)
-        chart_parser = ChartParser(equity=reader.equity, data=equity_chart_data)
         quote_data = quote_parser.extract_equity_meta_data()
 
         quote_displayer = QuoteDisplayer(reader.equity, quote_data)
@@ -149,58 +201,7 @@ class ArgsHandler:
         trends_displayer.display(equity_three_months_percentage_change, "3 months")
         trends_displayer.display(equity_one_month_percentage_change, "1 month")
         trends_displayer.display(equity_five_days_percentage_change, "1 week")
-    @staticmethod
-    def _setup_dir_structure(dir_path: Path, list_file_path: Path, answers: PyInquirer.prompt) -> bool:
-        """
-        make .equit_ease folder in $HOME dir.
-
-        :params dir_path -> ``Path``: a Path object representing an operating system-agnostic path
-                                  (works on POSIX and Windows)
-        :params list_file_path -> ``Path``: file path for the lists ASCII text file.
-        :param answers -> ``PyInquirer.prompt``: answers to the prompt.
-        
-        :returns True -> ``bool``:
-        """
-        dir_path.mkdir()  # create .equit_ease dir in $HOME
-        list_file_path.touch()  # create config file
-        with open(list_file_path, "w") as f:
-            init_list_name = answers["list_name"]
-            cleaner = lambda equity_names_list: [
-                name.strip() for name in equity_names_list
-            ]
-            equity_names = answers["equities_in_list"]
-            equity_names_formatted = ",".join(cleaner(equity_names.split(",")))
-
-            contents_for_file = (
-                f"""[{init_list_name}]\nequity_names = {equity_names_formatted}"""
-            )
-            f.write(contents_for_file)    
-        return True 
     
-    @staticmethod
-    def _add_to_lists(lists_file_path: Path, answers: PyInquirer.prompt) -> bool:
-        """
-        if the .equit_ease dir already exists, then append to the
-        lists ASCII text file in the directory (this file is created 
-        when the dir is created, so it is expected to already exist).
-
-        :params lists_file_path -> ``Path``: the path to the `lists` ASCII text file.
-        :param answers -> ``PyInquirer.prompt``: answers to the prompt.
-
-        :returns True -> ``bool``:
-        """
-        with open(lists_file_path, "a") as f:
-            cleaner = lambda equity_names_list: [
-                name.strip() for name in equity_names_list
-            ]
-            list_name = answers["list_name"]
-            equity_names = answers["equities_in_list"]
-            equity_names_formatted = ",".join(cleaner(equity_names.split(",")))
-            contents_for_file = (
-                f"""\n[{list_name}]\nequity_names = {equity_names_formatted}"""
-            )
-            f.write(contents_for_file)
-        return True
 
 parser = argparse.ArgumentParser(
     description="The easiest way to access data about your favorite stocks from the command line."
@@ -212,33 +213,35 @@ if __name__ == "__main__":
     args_handler = ArgsHandler(args)
     
     if args.config:
-        args_handler.handle_config()
+        if args.config == 'config':
+            args_handler.handle_config()
+        else:
+            parser.error(f"Unrecognized Argument: `{args.config}`. Did you mean `python3 main.py config`?")
 
     elif args.equity:
         args_handler.handle_equity()
 
     elif args.list:
         list_name = args.list
-        user_home_env_var = os.environ.get("HOME")
-        equit_ease_dir_path = os.path.join(user_home_env_var, ".equit_ease")
-        config_file_path = Path(os.path.join(equit_ease_dir_path, "lists"))
+        user_home_dir = os.environ.get("HOME")
+        equit_ease_dir = os.path.join(user_home_dir, ".equit_ease")
+        lists_file_path = Path(os.path.join(equit_ease_dir, "lists"))
 
-        if not os.path.exists(config_file_path):
+        if not os.path.exists(lists_file_path):
             raise FileNotFoundError("You do not have any lists configured yet. Run ``python3 main.py config`` to setup your first list!")
         else:
-            with open(config_file_path, "r") as f:
+            with open(lists_file_path, "r") as f:
                 file_contents_lines = f.read().splitlines()
 
-            
-            all_valid_names = filter(re.compile(r"^\[[a-zA-Z0-9]").search, file_contents_lines)
-            clean_names = lambda list_names : [name.strip("[]") for name in list_names]
-            list_formatted_names = ", ".join(clean_names(list(all_valid_names)))
 
-            if list_name not in list_formatted_names:
-                raise ValueError(f"'{list_name}' does not exist. Try: {list_formatted_names}")
+            user_config = UserConfigParser(list_name, file_contents_lines)
+            list_of_formatted_list_names, all_formatted_list_names = user_config.format_lists_file_contents()
+
+            if list_name not in list_of_formatted_list_names:
+                raise ValueError(f"'{list_name}' does not exist. Try: {all_formatted_list_names}")
             else:
                 for i, line in enumerate(file_contents_lines):
-                    if re.search(rf"^\[{list_name}", line):
+                    if re.search(rf"^\[{list_name}\]", line):
                         equity_names_to_search_unformatted = file_contents_lines[i + 1]
                         equity_names_to_search_formatted = (
                             equity_names_to_search_unformatted.split(" = ")[-1]
