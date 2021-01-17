@@ -114,7 +114,7 @@ class ArgsHandler:
 
         reader.build_company_lookup_url()
         if args.force == False:
-            long_name, ticker, answers = self.handle_force(args.force)
+            long_name, ticker, _ = self.handle_force(args.force)
         else:
             long_name, ticker = reader.get_equity_company_data(force=args.force)
 
