@@ -106,11 +106,11 @@ class ArgsHandler:
                     }
                 ]
 
-                answers = prompt(questions, style=None)
-                return long_name, ticker, answers
+                prompt(questions, style=None)
             else:
                 long_name, ticker = reader.get_equity_company_data(force=args.force)
-                return long_name, ticker
+            
+            return long_name, ticker
 
         reader.build_company_lookup_url()
         if args.force == False:
