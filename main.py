@@ -27,7 +27,7 @@ def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument(
         "--force",
         "-f",
-        type=bool,
+        type=str,
         default=True,
         help="If `False`, shows a list of all equities returned from the reverse lookup and lets you choose which one to retrieve data for. This is useful if you want to ensure that the data returned matches the equity you truly want to search for. If `True` (default), sends a request matching the first ticker returned from the reverse lookup.",
     )
@@ -93,7 +93,7 @@ class ArgsHandler:
 
             :param use_force -> ``bool``: if False, render the propmt. Otherwise, utilize first
             """
-            if use_force == False:
+            if use_force == "False":
                 long_name, ticker, choices = reader.get_equity_company_data(
                     force=args.force
                 )
@@ -106,16 +106,19 @@ class ArgsHandler:
                     }
                 ]
 
-                prompt(questions, style=None)
+                answers = prompt(questions, style=None)
+                return long_name, ticker, answers
             else:
                 long_name, ticker = reader.get_equity_company_data(force=args.force)
-            
-            return long_name, ticker
-
+                return long_name, ticker
 
         reader.build_company_lookup_url()
-        
-        long_name, ticker = handle_force(args.force) 
+        if args.force == "False":
+            long_name, ticker, answers = handle_force(args.force)
+            # FIXME: selection should be mapped to ticker and data retrieval
+            print(answers, ticker, long_name)
+        else:
+            long_name, ticker = reader.get_equity_company_data(force=args.force)
 
         reader.ticker = ticker
         reader.name = long_name
