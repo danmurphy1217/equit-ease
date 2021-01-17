@@ -116,6 +116,18 @@ class TrendsDisplayer(Displayer):
             result = "unchanged"
 
         return result
+    
+    def get_percentage_changes(self, *args):
+        """
+        get percentage changes for each provided arg in ``args``.
+
+        args:
+            
+        """
+        price_trends = list()
+        for arg in args:
+            price_trends.append(self.build_historical_price_trends(arg))
+        return price_trends
 
     def display(self, percentage_change: float, timeframe_descriptor: str) -> None:
         """
