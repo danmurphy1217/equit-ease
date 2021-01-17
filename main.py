@@ -27,7 +27,7 @@ def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument(
         "--force",
         "-f",
-        type=str,
+        type=bool,
         default=True,
         help="If `False`, shows a list of all equities returned from the reverse lookup and lets you choose which one to retrieve data for. This is useful if you want to ensure that the data returned matches the equity you truly want to search for. If `True` (default), sends a request matching the first ticker returned from the reverse lookup.",
     )
@@ -71,7 +71,7 @@ class ArgsHandler:
         else:
             self._append_to_lists_file(config_file_path, answers)
     
-    def handle_equity(self):
+    def handle_equity(self, reader: Reader):
         """
         if the ``--equity`` or ``-e`` flags are specified, the equity name that
         is provided is used to perform a reverse lookup. The first result from that
@@ -83,6 +83,84 @@ class ArgsHandler:
         for.
         """
         # FIXME: re-locate and re-factor code from args.equity here.
+
+        def handle_force(use_force: bool):
+            """
+            used to handle the ``--force`` / ``-f`` flags. If the flag is set
+            to True, the first ticker returned from the reverse lookup is used.
+            Otherwise, all values from the reverse lookup are displayed and the
+            user is prompted to choose which one should be searched.
+
+            :param use_force -> ``bool``: if False, render the propmt. Otherwise, utilize first
+            """
+            if use_force == False:
+                long_name, ticker, choices = reader.get_equity_company_data(
+                    force=args.force
+                )
+                questions = [
+                    {
+                        "type": "list",
+                        "name": "Equity_Name",
+                        "message": "Select The Correct Equity:",
+                        "choices": choices,
+                    }
+                ]
+
+                answers = prompt(questions, style=None)
+                return long_name, ticker, answers
+            else:
+                long_name, ticker = reader.get_equity_company_data(force=args.force)
+                return long_name, ticker
+
+        reader.build_company_lookup_url()
+        if args.force == False:
+            long_name, ticker, answers = self.handle_force(args.force)
+        else:
+            long_name, ticker = reader.get_equity_company_data(force=args.force)
+
+        reader.ticker = ticker
+        reader.name = long_name
+
+        reader.build_equity_quote_url()
+        reader.build_equity_chart_url()
+
+        equity_quote_data = reader.get_equity_quote_data()
+        equity_chart_data = reader.get_equity_chart_data()
+
+        quote_parser = QuoteParser(equity=reader.equity, data=equity_quote_data)
+        chart_parser = ChartParser(equity=reader.equity, data=equity_chart_data)
+        quote_data = quote_parser.extract_equity_meta_data()
+
+        quote_displayer = QuoteDisplayer(reader.equity, quote_data)
+        table = quote_displayer.tabularize()
+
+        trends_displayer = TrendsDisplayer(reader)
+        equity_one_year_percentage_change = (
+            trends_displayer.build_historical_price_trends("chart_one_year_url")
+        )
+        equity_six_months_percentage_change = (
+            trends_displayer.build_historical_price_trends("chart_six_months_url")
+        )
+        equity_three_months_percentage_change = (
+            trends_displayer.build_historical_price_trends("chart_three_months_url")
+        )
+        equity_one_month_percentage_change = (
+            trends_displayer.build_historical_price_trends("chart_one_month_url")
+        )
+        equity_five_days_percentage_change = (
+            trends_displayer.build_historical_price_trends("chart_five_days_url")
+        )
+
+        for row in table:
+            print(row)
+
+        print(f"\n{reader.ticker} is:\n")
+
+        trends_displayer.display(equity_one_year_percentage_change, "year")
+        trends_displayer.display(equity_six_months_percentage_change, "6 months")
+        trends_displayer.display(equity_three_months_percentage_change, "3 months")
+        trends_displayer.display(equity_one_month_percentage_change, "1 month")
+        trends_displayer.display(equity_five_days_percentage_change, "1 week")
     @staticmethod
     def _make_dir_and_lists_file(dir_path: Path, list_file_path: Path, answers: PyInquirer.prompt) -> bool:
         """
@@ -141,74 +219,15 @@ parser = init_parser(parser=parser)
 args = parser.parse_args()
 
 if __name__ == "__main__":
+    args_handler = ArgsHandler(args)
+    
     if args.config:
-        args_handler = ArgsHandler(args)
         print(args_handler.args_data)
         args_handler.handle_config()
 
     elif args.equity:
         reader = Reader(args.equity)
-        reader.build_company_lookup_url()
-        if args.force == "False":
-            long_name, ticker, choices = reader.get_equity_company_data(
-                force=args.force
-            )
-            questions = [
-                {
-                    "type": "list",
-                    "name": "Equity_Name",
-                    "message": "Select The Correct Equity:",
-                    "choices": choices,
-                }
-            ]
-
-            answers = prompt(questions, style=None)
-        else:
-            long_name, ticker = reader.get_equity_company_data(force=args.force)
-
-        reader.ticker = ticker
-        reader.name = long_name
-
-        reader.build_equity_quote_url()
-        reader.build_equity_chart_url()
-
-        equity_quote_data = reader.get_equity_quote_data()
-        equity_chart_data = reader.get_equity_chart_data()
-
-        quote_parser = QuoteParser(equity=reader.equity, data=equity_quote_data)
-        chart_parser = ChartParser(equity=reader.equity, data=equity_chart_data)
-        quote_data = quote_parser.extract_equity_meta_data()
-
-        quote_displayer = QuoteDisplayer(reader.equity, quote_data)
-        table = quote_displayer.tabularize()
-
-        trends_displayer = TrendsDisplayer(reader)
-        equity_one_year_percentage_change = (
-            trends_displayer.build_historical_price_trends("chart_one_year_url")
-        )
-        equity_six_months_percentage_change = (
-            trends_displayer.build_historical_price_trends("chart_six_months_url")
-        )
-        equity_three_months_percentage_change = (
-            trends_displayer.build_historical_price_trends("chart_three_months_url")
-        )
-        equity_one_month_percentage_change = (
-            trends_displayer.build_historical_price_trends("chart_one_month_url")
-        )
-        equity_five_days_percentage_change = (
-            trends_displayer.build_historical_price_trends("chart_five_days_url")
-        )
-
-        for row in table:
-            print(row)
-
-        print(f"\n{reader.ticker} is:\n")
-
-        trends_displayer.display(equity_one_year_percentage_change, "year")
-        trends_displayer.display(equity_six_months_percentage_change, "6 months")
-        trends_displayer.display(equity_three_months_percentage_change, "3 months")
-        trends_displayer.display(equity_one_month_percentage_change, "1 month")
-        trends_displayer.display(equity_five_days_percentage_change, "1 week")
+        args_handler.handle_equity(reader)
 
     elif args.list:
         list_name = args.list
