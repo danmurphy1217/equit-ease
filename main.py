@@ -112,11 +112,10 @@ class ArgsHandler:
             
             return long_name, ticker
 
+
         reader.build_company_lookup_url()
-        if args.force == False:
-            long_name, ticker, _ = self.handle_force(args.force)
-        else:
-            long_name, ticker = reader.get_equity_company_data(force=args.force)
+        
+        long_name, ticker = handle_force(args.force) 
 
         reader.ticker = ticker
         reader.name = long_name
