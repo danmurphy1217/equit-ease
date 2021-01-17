@@ -90,9 +90,8 @@ class Reader:
         :param self -> ``Reader``:
         """
         equity_quote_data = self.get_equity_quote_data()
-        equity_chart_data = self.get_equity_chart_data()
 
-        return equity_quote_data, equity_chart_data
+        return equity_quote_data
 
     @property
     def ticker(self: Reader) -> str:

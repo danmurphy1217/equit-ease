@@ -184,7 +184,7 @@ class ArgsHandler:
         reader.set_ticker_and_name_props_to(ticker, long_name)
         reader.build_urls()
 
-        equity_quote_data, equity_chart_data = reader.get_data()
+        equity_quote_data = reader.get_data()
 
         quote_parser = QuoteParser(equity=reader.equity, data=equity_quote_data)
         quote_data = quote_parser.extract_equity_meta_data()
