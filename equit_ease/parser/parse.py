@@ -156,7 +156,7 @@ class UserConfigParser(Reader):
         self.file_contents = file_contents    
     
     
-    def format_lists_file_contents(self: UserConfigParser):
+    def format_equity_lists(self: UserConfigParser):
         """
         search the lists file located in $HOME/.equit_ease/lists, gather a data
         struct of all stock list names, and format these names.
@@ -172,21 +172,25 @@ class UserConfigParser(Reader):
             string_of_formatted_list_names
         )
     
+    def find_match(self: UserConfigParser) -> None:
+        """
+        iterate over equity list names and find a match. Then, if a match is found,
+        retrieve the equities associated with that list and retrieve data for them.
 
-        # if list_name not in list_of_formatted_list_names:
-        #     raise ValueError(f"'{list_name}' does not exist. Try: {all_formatted_list_names}")
-        # else:
-        #     for i, line in enumerate(file_contents_lines):
-        #         if re.search(rf"^\[{list_name}\]", line):
-        #             equity_names_to_search_unformatted = file_contents_lines[i + 1]
-        #             equity_names_to_search_formatted = (
-        #                 equity_names_to_search_unformatted.split(" = ")[-1]
-        #             )
-        #             split_names = lambda name: name.split(",")
-        #             equities_to_search = split_names(equity_names_to_search_formatted)
+        :param self -> ``UserConfigParser``:
+        :returns ``??``:
+        """
+        is_match = lambda line: re.search(rf"^\[{self.list_name}\]", line)
 
-        #             for equity in equities_to_search:
-        #                 new_args_handler = ArgsHandler(argparse.Namespace(equity=equity))
-        #                 new_args_handler.handle_equity()
-        #         else:
-        #             continue
+        for i, line in enumerate(self.file_contents):
+            if is_match(line):
+                equity_names_to_search_unformatted = self.file_contents[i + 1]
+                equity_names_to_search_formatted = (
+                    equity_names_to_search_unformatted.split(" = ")[-1]
+                )
+                split_names = lambda name: name.split(",")
+                equities_to_search = split_names(equity_names_to_search_formatted)
+                return equities_to_search
+
+            else:
+                continue
