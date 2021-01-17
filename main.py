@@ -70,6 +70,19 @@ class ArgsHandler:
             self._make_dir_and_lists_file(os_agnostic_path, config_file_path, answers)
         else:
             self._append_to_lists_file(config_file_path, answers)
+    
+    def handle_equity(self):
+        """
+        if the ``--equity`` or ``-e`` flags are specified, the equity name that
+        is provided is used to perform a reverse lookup. The first result from that
+        lookup is then used to retrieve data and print it to the console.
+
+        If ``--force`` or ``-f`` is set to `False`, then you are given the flexibility
+        of choosing the correct equity from the reverse lookup. This is useful is you
+        do not know the exact ticker and want to ensure the correct equity is searched
+        for.
+        """
+        # FIXME: re-locate and re-factor code from args.equity here.
     @staticmethod
     def _make_dir_and_lists_file(dir_path: Path, list_file_path: Path, answers: PyInquirer.prompt) -> bool:
         """
@@ -197,12 +210,6 @@ if __name__ == "__main__":
         trends_displayer.display(equity_one_month_percentage_change, "1 month")
         trends_displayer.display(equity_five_days_percentage_change, "1 week")
 
-        # quote_contents = stringified_representation.split("\n")
-        # if args.out:
-        #     with open(args.out, "w") as f:
-        #         f.write("\n\t".join(line  for line in quote_contents))
-        # else:
-        #     print("\n\t".join(line  for line in quote_contents))
     elif args.list:
         list_name = args.list
         user_home_dir = os.environ.get("HOME")
