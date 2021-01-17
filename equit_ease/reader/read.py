@@ -247,7 +247,7 @@ class Reader:
             """extra all quotes from JSON object."""
             choices = []
             for items in data:
-                choices.append(items["shortname"])
+                choices.append(items["symbol"])
             return choices
 
         long_name = extract_longname(json_response["quotes"][0])
