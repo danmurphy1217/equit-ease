@@ -151,9 +151,9 @@ class ChartParser(Parser):
 
 
 class UserConfigParser(Reader):
-    def __init__(self, list_name: str, file_contents: List[str]) -> None:
+    def __init__(self, list_name: str, list_of_file_contents: List[str]) -> None:
         self.list_name = list_name
-        self.file_contents = file_contents    
+        self.list_of_file_contents = list_of_file_contents    
     
     
     def format_equity_lists(self: UserConfigParser):
@@ -163,7 +163,7 @@ class UserConfigParser(Reader):
 
         :self -> ``UserConfigParser``:
         """
-        all_list_names = filter(re.compile(r"^\[[a-zA-Z0-9]").search, self.file_contents)
+        all_list_names = filter(re.compile(r"^\[[a-zA-Z0-9]").search, self.list_of_file_contents)
         formatted_list_names = lambda list_names : [name.strip("[]") for name in list_names]
         list_of_formatted_list_names = formatted_list_names(list(all_list_names))
         string_of_formatted_list_names = ", ".join(list_of_formatted_list_names)
@@ -182,9 +182,9 @@ class UserConfigParser(Reader):
         """
         is_match = lambda line: re.search(rf"^\[{self.list_name}\]", line)
 
-        for i, line in enumerate(self.file_contents):
+        for i, line in enumerate(self.list_of_file_contents):
             if is_match(line):
-                equity_names_to_search_unformatted = self.file_contents[i + 1]
+                equity_names_to_search_unformatted = self.list_of_file_contents[i + 1]
                 equity_names_to_search_formatted = (
                     equity_names_to_search_unformatted.split(" = ")[-1]
                 )
@@ -193,4 +193,5 @@ class UserConfigParser(Reader):
                 return equities_to_search
 
             else:
+                # otherwise, continue to next line
                 continue
