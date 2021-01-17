@@ -1,7 +1,7 @@
 from __future__ import annotations
 import dataclasses
 from typing import Dict, Any, List
-import json
+import re
 
 from equit_ease.reader.read import Reader
 from equit_ease.datatypes.equity_meta import EquityMeta
@@ -148,3 +148,45 @@ class ChartParser(Parser):
                 equity_chart_data, "timestamp"
             ),  # extract from base equity chart data
         )
+
+
+class UserConfigParser(Reader):
+    def __init__(self, list_name: str, file_contents: List[str]) -> None:
+        self.list_name = list_name
+        self.file_contents = file_contents    
+    
+    
+    def format_lists_file_contents(self: UserConfigParser):
+        """
+        search the lists file located in $HOME/.equit_ease/lists, gather a data
+        struct of all stock list names, and format these names.
+
+        :self -> ``UserConfigParser``:
+        """
+        all_list_names = filter(re.compile(r"^\[[a-zA-Z0-9]").search, self.file_contents)
+        formatted_list_names = lambda list_names : [name.strip("[]") for name in list_names]
+        list_of_formatted_list_names = formatted_list_names(list(all_list_names))
+        string_of_formatted_list_names = ", ".join(list_of_formatted_list_names)
+        return (
+            list_of_formatted_list_names,
+            string_of_formatted_list_names
+        )
+    
+
+        # if list_name not in list_of_formatted_list_names:
+        #     raise ValueError(f"'{list_name}' does not exist. Try: {all_formatted_list_names}")
+        # else:
+        #     for i, line in enumerate(file_contents_lines):
+        #         if re.search(rf"^\[{list_name}\]", line):
+        #             equity_names_to_search_unformatted = file_contents_lines[i + 1]
+        #             equity_names_to_search_formatted = (
+        #                 equity_names_to_search_unformatted.split(" = ")[-1]
+        #             )
+        #             split_names = lambda name: name.split(",")
+        #             equities_to_search = split_names(equity_names_to_search_formatted)
+
+        #             for equity in equities_to_search:
+        #                 new_args_handler = ArgsHandler(argparse.Namespace(equity=equity))
+        #                 new_args_handler.handle_equity()
+        #         else:
+        #             continue
