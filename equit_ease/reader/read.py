@@ -1,5 +1,4 @@
 from __future__ import annotations
-from os import name
 from typing import Dict, Any
 import requests
 
@@ -13,7 +12,7 @@ class Reader:
     There is no parsing, cleaning or structuring done in this class. It's only purpose is to validate the input, send a
     request to an endpoint, verify the responses validity, and return it.
 
-    This implementation aims to follow the Builder design pattern, where the construction of a complex object is separated from 
+    This implementation aims to follow the Builder design pattern, where the construction of a complex object is separated from
     its representations. In this specific use case, the data is simply requested for, but there is no parsing or re-structuring.
     That is left to the `Parser` class. This makes it easy for the `Reader` class to be reused, amongst other things.
     """
@@ -55,6 +54,43 @@ class Reader:
         else:
             result = json_data[key_to_extract]
         return result
+
+    def set_ticker_and_name_props_to(self, ticker_val: str, name_val: str) -> None:
+        """
+        handle setting the `ticker` and `name` props for the class
+        instance. Since these two setters are called in tandom, it
+        makes most sense to extrapolate them to a public method
+        that is called with the values to set.
+
+        :param reader -> ``Reader``: an instianted Reader class obj.
+        :param ticker_val -> ``str``: the value to set to the ticker property.
+        :param name_val -> ``str``: the value to set to the name property.
+        :returns -> ``None``: Modifies the current reader object, therefore
+                                no need to return it.
+        """
+        self.ticker = ticker_val
+        self.name = name_val
+
+    def build_urls(self):
+        """
+        calls private methods that build the Quote and Chart URLs.
+
+        :parm self -> ``Reader``:
+        :return -> ``None``:
+        """
+        self.build_equity_quote_url()
+        self.build_equity_chart_url()
+
+    def get_data(self):
+        """
+        public interface used to call the private methods that retrieve
+        quote and chart-related datapoints.
+
+        :param self -> ``Reader``:
+        """
+        equity_quote_data = self.get_equity_quote_data()
+
+        return equity_quote_data
 
     @property
     def ticker(self: Reader) -> str:
@@ -98,13 +134,17 @@ class Reader:
             list_of_param_tuples = list(kwargs.items())
 
             for key, value in list_of_param_tuples:
-                param = f"{key}={value}" + "&" if key != list_of_param_tuples[-1][0] else f"{key}={value}"
+                param = (
+                    f"{key}={value}" + "&"
+                    if key != list_of_param_tuples[-1][0]
+                    else f"{key}={value}"
+                )
                 result += param
             return result
-        
+
         def build_url(params: str) -> str:
             """
-            Given a string of params for the url, builds out the url and 
+            Given a string of params for the url, builds out the url and
             returns it fully-formatted.
 
             :param params -> ``str``: the params for the URL.
@@ -116,12 +156,12 @@ class Reader:
 
             return result
 
-        one_year_params = build_params(**base_params, range='1y')
-        six_month_params = build_params(**base_params, range='6mo')
-        three_month_params = build_params(**base_params, range='3mo')
-        one_month_params = build_params(**base_params, range='1mo')
-        five_day_params = build_params(**base_params, range='5d')
-        
+        one_year_params = build_params(**base_params, range="1y")
+        six_month_params = build_params(**base_params, range="6mo")
+        three_month_params = build_params(**base_params, range="3mo")
+        one_month_params = build_params(**base_params, range="1mo")
+        five_day_params = build_params(**base_params, range="5d")
+
         one_year_url = build_url(one_year_params)
         six_months_url = build_url(six_month_params)
         three_months_url = build_url(three_month_params)
@@ -180,7 +220,7 @@ class Reader:
             json_response = requests.get(equity).json()
 
             return json_response["quotes"] != []
-        
+
         def build_equity_param() -> str:
             """
             local scope function for building the equity param for the GET request.
@@ -191,7 +231,7 @@ class Reader:
             result = "+".join(split_equity)
 
             return result
-        
+
         result = base_company_url + build_equity_param()
 
         if is_valid(result):
@@ -243,7 +283,7 @@ class Reader:
             """extra all quotes from JSON object."""
             choices = []
             for items in data:
-                choices.append(items["shortname"])
+                choices.append(items["symbol"])
             return choices
 
         long_name = extract_longname(json_response["quotes"][0])

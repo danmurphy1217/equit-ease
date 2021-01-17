@@ -1,7 +1,7 @@
 from __future__ import annotations
 import dataclasses
 from typing import Dict, Any, List
-import json
+import re
 
 from equit_ease.reader.read import Reader
 from equit_ease.datatypes.equity_meta import EquityMeta
@@ -87,7 +87,10 @@ class QuoteParser(Parser):
 class ChartParser(Parser):
     """contains methods relating to the parsing of Yahoo Finance Chart data."""
 
-    def _standardize(self, item_to_standardize: List[float | None]) -> List[float]:
+    #!TODO: Neither of these are necessary...
+
+    @staticmethod
+    def standardize(item_to_standardize: List[float | None]) -> List[float]:
         """
         retrieves the mean of the items in the list (after removing none types),
         then replaces none types with the mean
@@ -99,6 +102,7 @@ class ChartParser(Parser):
         """
         # TODO: is there a better approach for 'standardization'? Is this approach dirtying the data?
         remove_none_types = [item for item in item_to_standardize if item is not None]
+
         avg_of_filtered_items = sum(remove_none_types) / len(remove_none_types)
 
         result = [
@@ -124,6 +128,8 @@ class ChartParser(Parser):
             keys_to_extract, json_data_for_extraction
         )
 
+        print(equity_chart_data_struct)
+
         return (
             self._standardize(self._extract_data_from(equity_chart_data_struct, "low")),
             self._standardize(
@@ -142,3 +148,50 @@ class ChartParser(Parser):
                 equity_chart_data, "timestamp"
             ),  # extract from base equity chart data
         )
+
+
+class UserConfigParser(Reader):
+    def __init__(self, list_name: str, list_of_file_contents: List[str]) -> None:
+        self.list_name = list_name
+        self.list_of_file_contents = list_of_file_contents
+
+    def format_equity_lists(self: UserConfigParser):
+        """
+        search the lists file located in $HOME/.equit_ease/lists, gather a data
+        struct of all stock list names, and format these names.
+
+        :self -> ``UserConfigParser``:
+        """
+        all_list_names = filter(
+            re.compile(r"^\[[a-zA-Z0-9]").search, self.list_of_file_contents
+        )
+        formatted_list_names = lambda list_names: [
+            name.strip("[]") for name in list_names
+        ]
+        list_of_formatted_list_names = formatted_list_names(list(all_list_names))
+        string_of_formatted_list_names = ", ".join(list_of_formatted_list_names)
+        return (list_of_formatted_list_names, string_of_formatted_list_names)
+
+    def find_match(self: UserConfigParser) -> None:
+        """
+        iterate over equity list names and find a match. Then, if a match is found,
+        retrieve the equities associated with that list and retrieve data for them.
+
+        :param self -> ``UserConfigParser``:
+        :returns ``??``:
+        """
+        is_match = lambda line: re.search(rf"^\[{self.list_name}\]", line)
+
+        for i, line in enumerate(self.list_of_file_contents):
+            if is_match(line):
+                equity_names_to_search_unformatted = self.list_of_file_contents[i + 1]
+                equity_names_to_search_formatted = (
+                    equity_names_to_search_unformatted.split(" = ")[-1]
+                )
+                split_names = lambda name: name.split(",")
+                equities_to_search = split_names(equity_names_to_search_formatted)
+                return equities_to_search
+
+            else:
+                # otherwise, continue to next line
+                continue

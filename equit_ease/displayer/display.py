@@ -3,7 +3,7 @@ import re
 import dataclasses
 from typing import Any, List
 
-from equit_ease.parser.parse import Parser
+from equit_ease.parser.parse import Parser, ChartParser
 from equit_ease.utils.Constants import Constants
 
 
@@ -33,7 +33,7 @@ class Displayer(Parser):
         return result
 
 
-class HistoricalDisplayer(Displayer):
+class TrendsDisplayer(Displayer):
     """"contains methods used solely for the displayment of the chart data."""
 
     def __init__(self, reader):
@@ -43,7 +43,7 @@ class HistoricalDisplayer(Displayer):
         self.chart_one_month_url = reader.chart_one_month_url
         self.chart_five_days_url = reader.chart_five_days_url
 
-    def display_historical(self, instance_var_to_access: str) -> str:
+    def build_historical_price_trends(self, instance_var_to_access: str) -> str:
         """
         Given a valid class instance variable, retrieve it and use it's
         value to send a GET request to yahoo finance.
@@ -52,40 +52,104 @@ class HistoricalDisplayer(Displayer):
 
         :returns result -> ``str``: _TBD_
         """
-        trading_days_per_week = 5
-        weeks_per_month = 4
 
-        def get_historical_data_from(one_year_data: List[int | float], num_months_to_retrieve: int) -> List[int | float]:
+        def get_percentage_change(
+            start_value: int or float, end_value: int or float, num_decimal_places: 3
+        ) -> float:
             """
-            extract six months of data from a list containing the previous years worth
-            of data points.
+            calculate the percentage change from the beginning and ending values of a series.
 
-            :param one_year_data -> ``List[int | float]``: a list of the previous years data.
+            :param start_value -> ``int`` or ``float``: the starting value in the series.
+            :param end_value -> ``int`` or ``float``: the ending value in the series.
 
-            :return result -> ``List[int | float]``: six previous months of data.
+            :returns result -> ``float``: the percentage change.
             """
-            if num_months_to_retrieve > 12:
-                raise ValueError("Number of months to extract must be less than or equal to 12.")
-
-            num_weeks = weeks_per_month*num_months_to_retrieve
-            num_trading_days = trading_days_per_week*num_weeks
-
-            return one_year_data[-num_trading_days:] # slice off the previous ``num_trading_days``
-
+            percent_chage_formula = ((end_value - start_value) / (start_value)) * 100
+            result = round(percent_chage_formula, num_decimal_places)
+            return result
 
         attr_data = getattr(self, instance_var_to_access, None)
         if (attr_data) and (re.match(r"^(https|http)", attr_data)):
             get_request_response = self._get(attr_data)
             filtered_response_data = get_request_response["chart"]["result"][0]
-            daily_close_data = self._extract_data_from(filtered_response_data["indicators"]["quote"][0], "close")
 
-            return get_historical_data_from(daily_close_data, 12),\
-                   get_historical_data_from(daily_close_data, 6),\
-                   get_historical_data_from(daily_close_data, 3),\
-                   get_historical_data_from(daily_close_data, 1)
+            daily_close_data = ChartParser.standardize(
+                self._extract_data_from(
+                    filtered_response_data["indicators"]["quote"][0], "close"
+                )
+            )
+            daily_open_data = ChartParser.standardize(
+                self._extract_data_from(
+                    filtered_response_data["indicators"]["quote"][0], "open"
+                )
+            )
 
+            time_series_initial_open = daily_open_data[0]
+            time_series_final_close = daily_close_data[-1]
+            return get_percentage_change(
+                time_series_initial_open, time_series_final_close, 3
+            )
         else:
-            raise ValueError(f"Invalid Class Instance Variable. {instance_var_to_access} does not exist.")
+            raise ValueError(
+                f"Invalid Class Instance Variable. {instance_var_to_access} does not exist."
+            )
+
+    @staticmethod
+    def _build_descriptive_word_for(equity_percent_change: float) -> str:
+        """
+        dynamically builds a descriptive word ["up" or "down"] based on the
+        value of the percent change.
+
+        If the percent change for an equity is greater than 0, the descriptive word
+        is "up". If the percent change for an equity is less than 0, the descriptive
+        word is "down". Lastly, if the percent change for an equity is 0, the
+        descriptive word is "unchanged".
+
+        :param self -> ``TrendsDisplayer``:
+        :param equity_percent_change -> float: the percent change for an equity as calculated by
+        ``self.get_percentage_change``.
+
+        :returns result -> ``str``: the descriptive word.
+        """
+        result = ""
+
+        if equity_percent_change > 0:
+            result = "up"
+        elif equity_percent_change < 0:
+            result = "down"
+        else:
+            result = "unchanged"
+
+        return result
+
+    def get_percentage_changes(self, *args):
+        """
+        get percentage changes for each provided arg in ``args``.
+
+        args:
+
+        """
+        price_trends = list()
+        for arg in args:
+            price_trends.append(self.build_historical_price_trends(arg))
+        return price_trends
+
+    def display(self, percentage_change: float, timeframe_descriptor: str) -> None:
+        """
+        display trends datapoints to the console.
+
+        :param self -> ``TrendsDisplayer``:
+        :param percentage_change -> ``float``: the percentage change in the price of an equity.
+        :param timeframe_descriptor -> ``str``: a descriptor of the timeframe which is appended to the
+                                                end of the base_sentence.
+
+        :returns ``None``: rather than returning, prints to the console.
+        """
+        descriptive_word = self._build_descriptive_word_for(percentage_change)
+        print(
+            f"\t{descriptive_word} {percentage_change}% in the past {timeframe_descriptor}."
+        )
+
 
 class QuoteDisplayer(Displayer):
     """contains methods used solely for the displayment of quote data."""
