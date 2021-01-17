@@ -3,7 +3,7 @@ import re
 import dataclasses
 from typing import Any, List
 
-from equit_ease.parser.parse import Parser
+from equit_ease.parser.parse import Parser, ChartParser
 from equit_ease.utils.Constants import Constants
 
 
@@ -72,12 +72,13 @@ class TrendsDisplayer(Displayer):
         if (attr_data) and (re.match(r"^(https|http)", attr_data)):
             get_request_response = self._get(attr_data)
             filtered_response_data = get_request_response["chart"]["result"][0]
-            daily_close_data = self._extract_data_from(
+            
+            daily_close_data = ChartParser.standardize(self._extract_data_from(
                 filtered_response_data["indicators"]["quote"][0], "close"
-            )
-            daily_open_data = self._extract_data_from(
+            ))
+            daily_open_data = ChartParser.standardize(self._extract_data_from(
                 filtered_response_data["indicators"]["quote"][0], "open"
-            )
+            ))
 
             time_series_initial_open = daily_open_data[0]
             time_series_final_close = daily_close_data[-1]
