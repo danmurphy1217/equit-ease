@@ -67,11 +67,11 @@ class ArgsHandler:
         config_file_path = Path(os.path.join(equit_ease_dir_path, "lists"))
 
         if not os.path.exists(os_agnostic_path):
-            self._make_dir_and_lists_file(os_agnostic_path, config_file_path, answers)
+            self._setup_dir_structure(os_agnostic_path, config_file_path, answers)
         else:
-            self._append_to_lists_file(config_file_path, answers)
+            self._add_to_lists(config_file_path, answers)
     
-    def handle_equity(self, reader: Reader):
+    def handle_equity(self):
         """
         if the ``--equity`` or ``-e`` flags are specified, the equity name that
         is provided is used to perform a reverse lookup. The first result from that
@@ -81,6 +81,8 @@ class ArgsHandler:
         of choosing the correct equity from the reverse lookup. This is useful is you
         do not know the exact ticker and want to ensure the correct equity is searched
         for.
+
+        :param self -> ``Reader``:
         """
         # FIXME: re-locate and re-factor code from args.equity here.
 
@@ -95,7 +97,7 @@ class ArgsHandler:
             """
             if use_force == "False":
                 long_name, ticker, choices = reader.get_equity_company_data(
-                    force=args.force
+                    force=use_force
                 )
                 questions = [
                     {
@@ -106,6 +108,7 @@ class ArgsHandler:
                     }
                 ]
                 answers = prompt(questions, style=None)
+                # update equity name based off selection, build new URL, and repeat process
                 reader.equity = answers["Equity_Name"]
                 reader.build_company_lookup_url()
                 long_name, ticker = reader.get_equity_company_data(force="True")
@@ -113,13 +116,27 @@ class ArgsHandler:
             else:
                 long_name, ticker = reader.get_equity_company_data(force=args.force)
                 return long_name, ticker
+        
+        def set_ticker_and_name_props_to(reader: Reader, ticker_val: str, name_val: str) -> None:
+            """
+            handle setting the `ticker` and `name` props for the class
+            instance.
 
+            :param reader -> ``Reader``: an instianted Reader class obj.
+            :param ticker_val -> ``str``: the value to set to the ticker property.
+            :param name_val -> ``str``: the value to set to the name property.
+            :returns -> ``None``: Modifies the current reader object, therefore
+                                  no need to return it.
+            """
+            reader.ticker = ticker_val
+            reader.name = name_val
+
+        reader = Reader(self.args_data.equity)
         reader.build_company_lookup_url()
 
         long_name, ticker = handle_force(args.force)
 
-        reader.ticker = ticker
-        reader.name = long_name
+        set_ticker_and_name_props_to(reader, ticker, long_name)
 
         reader.build_equity_quote_url()
         reader.build_equity_chart_url()
@@ -162,7 +179,7 @@ class ArgsHandler:
         trends_displayer.display(equity_one_month_percentage_change, "1 month")
         trends_displayer.display(equity_five_days_percentage_change, "1 week")
     @staticmethod
-    def _make_dir_and_lists_file(dir_path: Path, list_file_path: Path, answers: PyInquirer.prompt) -> bool:
+    def _setup_dir_structure(dir_path: Path, list_file_path: Path, answers: PyInquirer.prompt) -> bool:
         """
         make .equit_ease folder in $HOME dir.
 
@@ -189,7 +206,7 @@ class ArgsHandler:
             f.write(contents_for_file)     
     
     @staticmethod
-    def _append_to_lists_file(lists_file_path: Path, answers: PyInquirer.prompt) -> bool:
+    def _add_to_lists(lists_file_path: Path, answers: PyInquirer.prompt) -> bool:
         """
         if the .equit_ease dir already exists, then append to the
         lists ASCII text file in the directory (this file is created 
@@ -222,12 +239,10 @@ if __name__ == "__main__":
     args_handler = ArgsHandler(args)
     
     if args.config:
-        print(args_handler.args_data)
         args_handler.handle_config()
 
     elif args.equity:
-        reader = Reader(args.equity)
-        args_handler.handle_equity(reader)
+        args_handler.handle_equity()
 
     elif args.list:
         list_name = args.list
