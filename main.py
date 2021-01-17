@@ -3,7 +3,6 @@ import argparse
 from PyInquirer import prompt
 import os
 from pathlib import Path
-import re
 
 import PyInquirer
 from equit_ease.reader.read import Reader
@@ -222,8 +221,7 @@ if __name__ == "__main__":
         args_handler.handle_equity()
 
     elif args.list:
-        list_name = args.list
-        user_home_dir = os.environ.get("HOME")
+        user_home_dir = home = str(Path.home()) # same as os.path.expanduser("~")
         equit_ease_dir = os.path.join(user_home_dir, ".equit_ease")
         lists_file_path = Path(os.path.join(equit_ease_dir, "lists"))
 
@@ -233,24 +231,15 @@ if __name__ == "__main__":
             with open(lists_file_path, "r") as f:
                 file_contents_lines = f.read().splitlines()
 
+            equity_list_name = args.list
+            user_config = UserConfigParser(equity_list_name, file_contents_lines)
+            list_of_formatted_list_names, string_of_all_formatted_list_names = user_config.format_equity_lists()
 
-            user_config = UserConfigParser(list_name, file_contents_lines)
-            list_of_formatted_list_names, all_formatted_list_names = user_config.format_lists_file_contents()
-
-            if list_name not in list_of_formatted_list_names:
-                raise ValueError(f"'{list_name}' does not exist. Try: {all_formatted_list_names}")
+            if equity_list_name not in list_of_formatted_list_names:
+                raise ValueError(f"'{equity_list_name}' does not exist. Try: {string_of_all_formatted_list_names}")
             else:
-                for i, line in enumerate(file_contents_lines):
-                    if re.search(rf"^\[{list_name}\]", line):
-                        equity_names_to_search_unformatted = file_contents_lines[i + 1]
-                        equity_names_to_search_formatted = (
-                            equity_names_to_search_unformatted.split(" = ")[-1]
-                        )
-                        split_names = lambda name: name.split(",")
-                        equities_to_search = split_names(equity_names_to_search_formatted)
+                equities_to_search = user_config.find_match()
 
-                        for equity in equities_to_search:
-                            new_args_handler = ArgsHandler(argparse.Namespace(equity=equity))
-                            new_args_handler.handle_equity()
-                    else:
-                        continue
+                for equity in equities_to_search:
+                    new_args_handler = ArgsHandler(argparse.Namespace(equity=equity))
+                    new_args_handler.handle_equity()
