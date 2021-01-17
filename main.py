@@ -1,14 +1,15 @@
-import PyInquirer
-from equit_ease.reader.read import Reader
-from equit_ease.parser.parse import QuoteParser, ChartParser
-from equit_ease.displayer.display import QuoteDisplayer, TrendsDisplayer
-
+from __future__ import annotations
 import argparse
 from PyInquirer import prompt
 import os
 from pathlib import Path
 import re
-from typing import Dict
+
+import PyInquirer
+from equit_ease.reader.read import Reader
+from equit_ease.parser.parse import QuoteParser, ChartParser
+from equit_ease.displayer.display import QuoteDisplayer, TrendsDisplayer
+
 def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     """
     instantiate the parser object with the necessary arguments.
@@ -28,7 +29,7 @@ def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "--force",
         "-f",
         type=str,
-        default=True,
+        default="True",
         help="If `False`, shows a list of all equities returned from the reverse lookup and lets you choose which one to retrieve data for. This is useful if you want to ensure that the data returned matches the equity you truly want to search for. If `True` (default), sends a request matching the first ticker returned from the reverse lookup.",
     )
     
@@ -42,14 +43,14 @@ class ArgsHandler:
     def __init__(self, args_data: argparse.Namespace):
         self.args_data = args_data
 
-    def handle_config(self):
+    def handle_config(self: ArgsHandler):
         """
         the `config` positional arg takes precedence over other args. If config
         exists in the args, then that is the process that is initiated and handled.
 
         :param self -> ``ArgsHandler``:
 
-        :returns ``??``: # FIXME
+        :returns ``None``:
         """
         questions = [
             {"type": "input", "name": "list_name", "message": "List Name:"},
@@ -84,7 +85,6 @@ class ArgsHandler:
 
         :param self -> ``Reader``:
         """
-        # FIXME: re-locate and re-factor code from args.equity here.
 
         def handle_force(use_force: bool):
             """
@@ -116,33 +116,16 @@ class ArgsHandler:
             else:
                 long_name, ticker = reader.get_equity_company_data(force=args.force)
                 return long_name, ticker
-        
-        def set_ticker_and_name_props_to(reader: Reader, ticker_val: str, name_val: str) -> None:
-            """
-            handle setting the `ticker` and `name` props for the class
-            instance.
-
-            :param reader -> ``Reader``: an instianted Reader class obj.
-            :param ticker_val -> ``str``: the value to set to the ticker property.
-            :param name_val -> ``str``: the value to set to the name property.
-            :returns -> ``None``: Modifies the current reader object, therefore
-                                  no need to return it.
-            """
-            reader.ticker = ticker_val
-            reader.name = name_val
 
         reader = Reader(self.args_data.equity)
         reader.build_company_lookup_url()
 
         long_name, ticker = handle_force(args.force)
 
-        set_ticker_and_name_props_to(reader, ticker, long_name)
+        reader.set_ticker_and_name_props_to(ticker, long_name)
+        reader.build_urls()
 
-        reader.build_equity_quote_url()
-        reader.build_equity_chart_url()
-
-        equity_quote_data = reader.get_equity_quote_data()
-        equity_chart_data = reader.get_equity_chart_data()
+        equity_quote_data, equity_chart_data = reader.get_data()
 
         quote_parser = QuoteParser(equity=reader.equity, data=equity_quote_data)
         chart_parser = ChartParser(equity=reader.equity, data=equity_chart_data)
@@ -152,21 +135,9 @@ class ArgsHandler:
         table = quote_displayer.tabularize()
 
         trends_displayer = TrendsDisplayer(reader)
-        equity_one_year_percentage_change = (
-            trends_displayer.build_historical_price_trends("chart_one_year_url")
-        )
-        equity_six_months_percentage_change = (
-            trends_displayer.build_historical_price_trends("chart_six_months_url")
-        )
-        equity_three_months_percentage_change = (
-            trends_displayer.build_historical_price_trends("chart_three_months_url")
-        )
-        equity_one_month_percentage_change = (
-            trends_displayer.build_historical_price_trends("chart_one_month_url")
-        )
-        equity_five_days_percentage_change = (
-            trends_displayer.build_historical_price_trends("chart_five_days_url")
-        )
+
+        trends_to_retrieve = ["chart_one_year_url", "chart_six_months_url", "chart_three_months_url", "chart_one_month_url", "chart_five_days_url"]
+        equity_one_year_percentage_change, equity_six_months_percentage_change, equity_three_months_percentage_change, equity_one_month_percentage_change, equity_five_days_percentage_change = trends_displayer.get_percentage_changes(*trends_to_retrieve)
 
         for row in table:
             print(row)
@@ -203,7 +174,8 @@ class ArgsHandler:
             contents_for_file = (
                 f"""[{init_list_name}]\nequity_names = {equity_names_formatted}"""
             )
-            f.write(contents_for_file)     
+            f.write(contents_for_file)    
+        return True 
     
     @staticmethod
     def _add_to_lists(lists_file_path: Path, answers: PyInquirer.prompt) -> bool:
@@ -228,6 +200,7 @@ class ArgsHandler:
                 f"""\n[{list_name}]\nequity_names = {equity_names_formatted}"""
             )
             f.write(contents_for_file)
+        return True
 
 parser = argparse.ArgumentParser(
     description="The easiest way to access data about your favorite stocks from the command line."
@@ -246,27 +219,35 @@ if __name__ == "__main__":
 
     elif args.list:
         list_name = args.list
-        user_home_dir = os.environ.get("HOME")
-        equit_ease_dir_path = os.path.join(user_home_dir, ".equit_ease")
+        user_home_env_var = os.environ.get("HOME")
+        equit_ease_dir_path = os.path.join(user_home_env_var, ".equit_ease")
         config_file_path = Path(os.path.join(equit_ease_dir_path, "lists"))
-        with open(config_file_path, "r") as f:
-            file_contents_lines = f.read().splitlines()
 
-        for i, line in enumerate(file_contents_lines):
-            if re.search(rf"{list_name}(?=])", line):
-                equity_names_to_search_unformatted = file_contents_lines[i + 1]
-                equity_names_to_search_formatted = (
-                    equity_names_to_search_unformatted.split(" = ")[-1]
-                )
-                # TODO: ensure that input is stripped of any spaces: AAPL,CRM,MSFT,CRWD
-                split_names = lambda name: name.split(",")
-                equities_to_search = split_names(equity_names_to_search_formatted)
+        if not os.path.exists(config_file_path):
+            raise FileNotFoundError("You do not have any lists configured yet. Run ``python3 main.py config`` to setup your first list!")
+        else:
+            with open(config_file_path, "r") as f:
+                file_contents_lines = f.read().splitlines()
 
-                for equity in equities_to_search:
-                    reader = Reader(equity)
-                    args_handler.handle_equity(reader)
+            
+            all_valid_names = filter(re.compile(r"^\[[a-zA-Z0-9]").search, file_contents_lines)
+            clean_names = lambda list_names : [name.strip("[]") for name in list_names]
+            list_formatted_names = ", ".join(clean_names(list(all_valid_names)))
+
+            if list_name not in list_formatted_names:
+                raise ValueError(f"'{list_name}' does not exist. Try: {list_formatted_names}")
             else:
-                all_valid_names = filter(re.compile(r"^\[[a-zA-Z0-9]").search, file_contents_lines)
-                clean_names = lambda list_names : [name.strip("[]") for name in list_names]
-                formatted_names = ", ".join(clean_names(list(all_valid_names)))
-                raise ValueError(f"Invalid List Name. Try: {formatted_names}")
+                for i, line in enumerate(file_contents_lines):
+                    if re.search(rf"^\[{list_name}", line):
+                        equity_names_to_search_unformatted = file_contents_lines[i + 1]
+                        equity_names_to_search_formatted = (
+                            equity_names_to_search_unformatted.split(" = ")[-1]
+                        )
+                        split_names = lambda name: name.split(",")
+                        equities_to_search = split_names(equity_names_to_search_formatted)
+
+                        for equity in equities_to_search:
+                            new_args_handler = ArgsHandler(argparse.Namespace(equity=equity))
+                            new_args_handler.handle_equity()
+                    else:
+                        continue
