@@ -200,15 +200,13 @@ class ArgsHandler:
         trends_displayer.display(equity_three_months_percentage_change, "3 months")
         trends_displayer.display(equity_one_month_percentage_change, "1 month")
         trends_displayer.display(equity_five_days_percentage_change, "1 week")
-    
-
-parser = argparse.ArgumentParser(
-    description="The easiest way to access data about your favorite stocks from the command line."
-)
-parser = init_parser(parser=parser)
-args = parser.parse_args()
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+    description="The easiest way to access data about your favorite stocks from the command line."
+    )
+    parser = init_parser(parser=parser)
+    args = parser.parse_args()
     args_handler = ArgsHandler(args)
     
     if args.config:
