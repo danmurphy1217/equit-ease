@@ -1,3 +1,4 @@
+import PyInquirer
 from equit_ease.reader.read import Reader
 from equit_ease.parser.parse import QuoteParser, ChartParser
 from equit_ease.displayer.display import QuoteDisplayer, TrendsDisplayer
@@ -7,30 +8,49 @@ from PyInquirer import prompt
 import os
 from pathlib import Path
 import re
+from typing import Dict
+def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+    """
+    instantiate the parser object with the necessary arguments.
 
-parser = argparse.ArgumentParser(
-    description="The easiest way to access stock market data from the command line."
-)
-parser.add_argument(
-    "config",
-    type=str,
-    nargs="?",
-    help="create lists of stocks for seamless future retrieval.",
-)
-parser.add_argument("--equity", "-e", type=str, help="the equity to retrieve data for.")
-parser.add_argument(
-    "--force",
-    "-f",
-    type=str,
-    default=True,
-    help="If `False`, shows a list of equities matching the value passed to `--equity`. This is useful if you want to ensure that the data returned matches the equity you are searching for. If `True` (default), sends a request based off the value specified with `--equity`.",
-)
-parser.add_argument("--list", "-l", type=str, help="the equity to retrieve data for.")
+    :param parser -> ``argparse.ArgumentParser``: a parser object with no arguments added.
+    
+    :returns parser -> ``argparse.ArgumentParser``: a parser object containing the needed arguments.
+    """
+    parser.add_argument(
+        "config",
+        type=str,
+        nargs="?",
+        help="create a named list of stocks that can easily be retrieved later with the ``--list`` or ``-l`` flag.",
+    )
+    
+    parser.add_argument(
+        "--force",
+        "-f",
+        type=str,
+        default=True,
+        help="If `False`, shows a list of all equities returned from the reverse lookup and lets you choose which one to retrieve data for. This is useful if you want to ensure that the data returned matches the equity you truly want to search for. If `True` (default), sends a request matching the first ticker returned from the reverse lookup.",
+    )
+    
+    parser.add_argument("--equity", "-e", type=str, help="the equity to retrieve data for.")
+    parser.add_argument("--list", "-l", type=str, help="the equity to retrieve data for.")
 
-args = parser.parse_args()
+    return parser
 
-if __name__ == "__main__":
-    if args.config:
+class ArgsHandler:
+
+    def __init__(self, args_data: argparse.Namespace):
+        self.args_data = args_data
+
+    def handle_config(self):
+        """
+        the `config` positional arg takes precedence over other args. If config
+        exists in the args, then that is the process that is initiated and handled.
+
+        :param self -> ``ArgsHandler``:
+
+        :returns ``??``: # FIXME
+        """
         questions = [
             {"type": "input", "name": "list_name", "message": "List Name:"},
             {
@@ -40,38 +60,79 @@ if __name__ == "__main__":
             },
         ]
         answers = prompt(questions, style=None)
+
         user_home_dir = os.environ.get("HOME")
         equit_ease_dir_path = os.path.join(user_home_dir, ".equit_ease")
         os_agnostic_path = Path(equit_ease_dir_path)
         config_file_path = Path(os.path.join(equit_ease_dir_path, "lists"))
 
         if not os.path.exists(os_agnostic_path):
-            os_agnostic_path.mkdir()  # create .equit_ease dir in $HOME
-            config_file_path.touch()  # create config file
-            with open(config_file_path, "w") as f:
-                init_list_name = answers["list_name"]
-                cleaner = lambda equity_names_list: [
-                    name.strip() for name in equity_names_list
-                ]
-                equity_names = answers["equities_in_list"]
-                equity_names_formatted = ",".join(cleaner(equity_names.split(",")))
-
-                contents_for_file = (
-                    f"""[{init_list_name}]\nequity_names = {equity_names_formatted}"""
-                )
-                f.write(contents_for_file)
+            self._make_dir_and_lists_file(os_agnostic_path, config_file_path, answers)
         else:
-            with open(config_file_path, "a") as f:
-                cleaner = lambda equity_names_list: [
-                    name.strip() for name in equity_names_list
-                ]
-                list_name = answers["list_name"]
-                equity_names = answers["equities_in_list"]
-                equity_names_formatted = ",".join(cleaner(equity_names.split(",")))
-                contents_for_file = (
-                    f"""\n[{list_name}]\nequity_names = {equity_names_formatted}"""
-                )
-                f.write(contents_for_file)
+            self._append_to_lists_file(config_file_path, answers)
+    @staticmethod
+    def _make_dir_and_lists_file(dir_path: Path, list_file_path: Path, answers: PyInquirer.prompt) -> bool:
+        """
+        make .equit_ease folder in $HOME dir.
+
+        :params dir_path -> ``Path``: a Path object representing an operating system-agnostic path
+                                  (works on POSIX and Windows)
+        :params list_file_path -> ``Path``: file path for the lists ASCII text file.
+        :param answers -> ``PyInquirer.prompt``: answers to the prompt.
+        
+        :returns True -> ``bool``:
+        """
+        dir_path.mkdir()  # create .equit_ease dir in $HOME
+        list_file_path.touch()  # create config file
+        with open(list_file_path, "w") as f:
+            init_list_name = answers["list_name"]
+            cleaner = lambda equity_names_list: [
+                name.strip() for name in equity_names_list
+            ]
+            equity_names = answers["equities_in_list"]
+            equity_names_formatted = ",".join(cleaner(equity_names.split(",")))
+
+            contents_for_file = (
+                f"""[{init_list_name}]\nequity_names = {equity_names_formatted}"""
+            )
+            f.write(contents_for_file)     
+    
+    @staticmethod
+    def _append_to_lists_file(lists_file_path: Path, answers: PyInquirer.prompt) -> bool:
+        """
+        if the .equit_ease dir already exists, then append to the
+        lists ASCII text file in the directory (this file is created 
+        when the dir is created, so it is expected to already exist).
+
+        :params lists_file_path -> ``Path``: the path to the `lists` ASCII text file.
+        :param answers -> ``PyInquirer.prompt``: answers to the prompt.
+
+        :returns True -> ``bool``:
+        """
+        with open(lists_file_path, "a") as f:
+            cleaner = lambda equity_names_list: [
+                name.strip() for name in equity_names_list
+            ]
+            list_name = answers["list_name"]
+            equity_names = answers["equities_in_list"]
+            equity_names_formatted = ",".join(cleaner(equity_names.split(",")))
+            contents_for_file = (
+                f"""\n[{list_name}]\nequity_names = {equity_names_formatted}"""
+            )
+            f.write(contents_for_file)
+
+parser = argparse.ArgumentParser(
+    description="The easiest way to access data about your favorite stocks from the command line."
+)
+parser = init_parser(parser=parser)
+args = parser.parse_args()
+
+if __name__ == "__main__":
+    if args.config:
+        args_handler = ArgsHandler(args)
+        print(args_handler.args_data)
+        args_handler.handle_config()
+
     elif args.equity:
         reader = Reader(args.equity)
         reader.build_company_lookup_url()
