@@ -109,18 +109,14 @@ class ArgsHandler:
                 reader.equity = answers["Equity_Name"]
                 reader.build_company_lookup_url()
                 long_name, ticker = reader.get_equity_company_data(force="True")
-                return long_name, ticker, answers
+                return long_name, ticker
             else:
                 long_name, ticker = reader.get_equity_company_data(force=args.force)
                 return long_name, ticker
 
         reader.build_company_lookup_url()
-        if args.force == "False":
-            long_name, ticker, answers = handle_force(args.force)
-            # FIXME: selection should be mapped to ticker and data retrieval
-            print(answers, ticker, long_name)
-        else:
-            long_name, ticker = reader.get_equity_company_data(force=args.force)
+
+        long_name, ticker = handle_force(args.force)
 
         reader.ticker = ticker
         reader.name = long_name
@@ -253,91 +249,92 @@ if __name__ == "__main__":
 
                 for equity in equities_to_search:
                     reader = Reader(equity)
-                    reader.build_company_lookup_url()
-                    if args.force == "False":
-                        long_name, ticker, choices = reader.get_equity_company_data(
-                            force=args.force
-                        )
-                        questions = [
-                            {
-                                "type": "list",
-                                "name": "Equity_Name",
-                                "message": "Select The Correct Equity:",
-                                "choices": choices,
-                            }
-                        ]
+                    # reader.build_company_lookup_url()
+                    args_handler.handle_equity(reader)
+                    # if args.force == "False":
+                    #     long_name, ticker, choices = reader.get_equity_company_data(
+                    #         force=args.force
+                    #     )
+                    #     questions = [
+                    #         {
+                    #             "type": "list",
+                    #             "name": "Equity_Name",
+                    #             "message": "Select The Correct Equity:",
+                    #             "choices": choices,
+                    #         }
+                    #     ]
 
-                        answers = prompt(questions, style=None)
-                    else:
-                        long_name, ticker = reader.get_equity_company_data(
-                            force=args.force
-                        )
+                    #     answers = prompt(questions, style=None)
+                    # else:
+                    #     long_name, ticker = reader.get_equity_company_data(
+                    #         force=args.force
+                    #     )
 
-                    reader.ticker = ticker
-                    reader.name = long_name
+                    # reader.ticker = ticker
+                    # reader.name = long_name
 
-                    reader.build_equity_quote_url()
-                    reader.build_equity_chart_url()
+                    # reader.build_equity_quote_url()
+                    # reader.build_equity_chart_url()
 
-                    equity_quote_data = reader.get_equity_quote_data()
-                    equity_chart_data = reader.get_equity_chart_data()
+                    # equity_quote_data = reader.get_equity_quote_data()
+                    # equity_chart_data = reader.get_equity_chart_data()
 
-                    quote_parser = QuoteParser(
-                        equity=reader.equity, data=equity_quote_data
-                    )
-                    chart_parser = ChartParser(
-                        equity=reader.equity, data=equity_chart_data
-                    )
-                    quote_data = quote_parser.extract_equity_meta_data()
+                    # quote_parser = QuoteParser(
+                    #     equity=reader.equity, data=equity_quote_data
+                    # )
+                    # chart_parser = ChartParser(
+                    #     equity=reader.equity, data=equity_chart_data
+                    # )
+                    # quote_data = quote_parser.extract_equity_meta_data()
 
-                    quote_displayer = QuoteDisplayer(reader.equity, quote_data)
-                    table = quote_displayer.tabularize()
+                    # quote_displayer = QuoteDisplayer(reader.equity, quote_data)
+                    # table = quote_displayer.tabularize()
 
-                    trends_displayer = TrendsDisplayer(reader)
-                    equity_one_year_percentage_change = (
-                        trends_displayer.build_historical_price_trends(
-                            "chart_one_year_url"
-                        )
-                    )
-                    equity_six_months_percentage_change = (
-                        trends_displayer.build_historical_price_trends(
-                            "chart_six_months_url"
-                        )
-                    )
-                    equity_three_months_percentage_change = (
-                        trends_displayer.build_historical_price_trends(
-                            "chart_three_months_url"
-                        )
-                    )
-                    equity_one_month_percentage_change = (
-                        trends_displayer.build_historical_price_trends(
-                            "chart_one_month_url"
-                        )
-                    )
-                    equity_five_days_percentage_change = (
-                        trends_displayer.build_historical_price_trends(
-                            "chart_five_days_url"
-                        )
-                    )
+                    # trends_displayer = TrendsDisplayer(reader)
+                    # equity_one_year_percentage_change = (
+                    #     trends_displayer.build_historical_price_trends(
+                    #         "chart_one_year_url"
+                    #     )
+                    # )
+                    # equity_six_months_percentage_change = (
+                    #     trends_displayer.build_historical_price_trends(
+                    #         "chart_six_months_url"
+                    #     )
+                    # )
+                    # equity_three_months_percentage_change = (
+                    #     trends_displayer.build_historical_price_trends(
+                    #         "chart_three_months_url"
+                    #     )
+                    # )
+                    # equity_one_month_percentage_change = (
+                    #     trends_displayer.build_historical_price_trends(
+                    #         "chart_one_month_url"
+                    #     )
+                    # )
+                    # equity_five_days_percentage_change = (
+                    #     trends_displayer.build_historical_price_trends(
+                    #         "chart_five_days_url"
+                    #     )
+                    # )
 
-                    for row in table:
-                        print(row)
+                    # for row in table:
+                    #     print(row)
 
-                    print(f"\n{reader.ticker} is:\n")
+                    # print(f"\n{reader.ticker} is:\n")
 
-                    trends_displayer.display(equity_one_year_percentage_change, "year")
-                    trends_displayer.display(
-                        equity_six_months_percentage_change, "6 months"
-                    )
-                    trends_displayer.display(
-                        equity_three_months_percentage_change, "3 months"
-                    )
-                    trends_displayer.display(
-                        equity_one_month_percentage_change, "1 month"
-                    )
-                    trends_displayer.display(
-                        equity_five_days_percentage_change, "1 week"
-                    )
+                    # trends_displayer.display(equity_one_year_percentage_change, "year")
+                    # trends_displayer.display(
+                    #     equity_six_months_percentage_change, "6 months"
+                    # )
+                    # trends_displayer.display(
+                    #     equity_three_months_percentage_change, "3 months"
+                    # )
+                    # trends_displayer.display(
+                    #     equity_one_month_percentage_change, "1 month"
+                    # )
+                    # trends_displayer.display(
+                    #     equity_five_days_percentage_change, "1 week"
+                    # )
             else:
                 pass
         # with open(config_file_path)
