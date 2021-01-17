@@ -105,8 +105,10 @@ class ArgsHandler:
                         "choices": choices,
                     }
                 ]
-
                 answers = prompt(questions, style=None)
+                reader.equity = answers["Equity_Name"]
+                reader.build_company_lookup_url()
+                long_name, ticker = reader.get_equity_company_data(force="True")
                 return long_name, ticker, answers
             else:
                 long_name, ticker = reader.get_equity_company_data(force=args.force)
