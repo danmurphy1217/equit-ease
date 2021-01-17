@@ -50,7 +50,7 @@ class TestReaderMethods(unittest.TestCase):
         full_url_one = Constants.yahoo_finance_base_chart_url + reader.ticker
         # builds the URL and sets it as a class instance(!!!) attribute
         _ = reader.build_equity_chart_url()
-        self.assertEqual(reader.chart_url, full_url_one)
+        self.assertEqual(reader.chart_base_url, full_url_one)
 
     def test_build_chart_url_fail(self):
         """test case #2 for build_equity_url_for() in reader/read.py -> throw error"""
