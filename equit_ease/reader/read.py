@@ -13,8 +13,8 @@ class Reader:
     There is no parsing, cleaning or structuring done in this class. It's only purpose is to validate the input, send a
     request to an endpoint, verify the responses validity, and return it.
 
-    This implementation follows the Builder design pattern, where the construction of a complex object is separated from its
-    representations. In this specific use case, the data is simply requested for, but there is no parsing or re-structuring.
+    This implementation aims to follow the Builder design pattern, where the construction of a complex object is separated from 
+    its representations. In this specific use case, the data is simply requested for, but there is no parsing or re-structuring.
     That is left to the `Parser` class. This makes it easy for the `Reader` class to be reused, amongst other things.
     """
 
@@ -32,12 +32,14 @@ class Reader:
             see ``build_equity_url`` for what the formatted URL should look like.
         )
 
-        :returns -> ``Dict[str, Any]``: JSON response object from yahoo finance.
+        :returns result -> ``Dict[str, Any]``: JSON response object from yahoo finance.
         """
         response = requests.get(y_finance_formatted_url)
         response.raise_for_status()
 
-        return response.json()
+        result = response.json()
+
+        return result
 
     @staticmethod
     def _extract_data_from(json_data: Dict[str, Any], key_to_extract: str) -> Any:
@@ -84,10 +86,57 @@ class Reader:
         :returns -> ``str``: the formatted URL used to retrieve the equities chart data from yahoo finance.
         """
         base_chart_url = Constants.yahoo_finance_base_chart_url
+        base_params = Constants.chart_url_base_params
+
+        def build_params(**kwargs) -> str:
+            """
+            build params for the GET /chart URL.
+
+            :returns result -> ``str``: the params to be appended to the URL.
+            """
+            result = "?"
+            list_of_param_tuples = list(kwargs.items())
+
+            for key, value in list_of_param_tuples:
+                param = f"{key}={value}" + "&" if key != list_of_param_tuples[-1][0] else f"{key}={value}"
+                result += param
+            return result
+        
+        def build_url(params: str) -> str:
+            """
+            Given a string of params for the url, builds out the url and 
+            returns it fully-formatted.
+
+            :param params -> ``str``: the params for the URL.
+
+            :returns result -> ``str``: the formatted URL.
+            """
+            base_domain = base_chart_url + self.__ticker
+            result = base_domain + params
+
+            return result
+
+        one_year_params = build_params(**base_params, range='1y')
+        six_month_params = build_params(**base_params, range='6mo')
+        three_month_params = build_params(**base_params, range='3mo')
+        one_month_params = build_params(**base_params, range='1mo')
+        five_day_params = build_params(**base_params, range='5d')
+        
+        one_year_url = build_url(one_year_params)
+        six_months_url = build_url(six_month_params)
+        three_months_url = build_url(three_month_params)
+        one_month_url = build_url(one_month_params)
+        five_days_url = build_url(five_day_params)
+
         # TODO: this will be more robust based off args that can be passed via command-line
         result = base_chart_url + self.__ticker
 
-        self.chart_url = result
+        self.chart_base_url = result
+        self.chart_one_year_url = one_year_url
+        self.chart_six_months_url = six_months_url
+        self.chart_three_months_url = three_months_url
+        self.chart_one_month_url = one_month_url
+        self.chart_five_days_url = five_days_url
         return True
 
     def build_equity_quote_url(self: Reader) -> str:
@@ -100,7 +149,7 @@ class Reader:
         :returns -> ``str``: the formatted URL used to retrieve equity meta-data from yahoo finance.
         """
         base_quote_url = Constants.yahoo_finance_base_quote_url
-        # TODO: this will be more robust based off args that can be passed via command-line
+        # TODO: this could be more robust based off args that can be passed via command-line
         result = base_quote_url + f"?symbols={self.__ticker}"
 
         self.quote_url = result
@@ -115,7 +164,6 @@ class Reader:
         :return result -> ``str``: the URL to use for self._get()
         """
         base_company_url = Constants.yahoo_finance_co_lookup
-        result = base_company_url + "+".join(self.equity.split(" "))
 
         def is_valid(equity: requests.get) -> bool:
             """
@@ -132,6 +180,19 @@ class Reader:
             json_response = requests.get(equity).json()
 
             return json_response["quotes"] != []
+        
+        def build_equity_param() -> str:
+            """
+            local scope function for building the equity param for the GET request.
+
+            :returns result -> ``str``: the equity param formatted for the GET request.
+            """
+            split_equity = self.equity.split(" ")
+            result = "+".join(split_equity)
+
+            return result
+        
+        result = base_company_url + build_equity_param()
 
         if is_valid(result):
             self.company_url = result
@@ -144,7 +205,7 @@ class Reader:
 
         :returns -> ``Dict[str, Any]``: JSON object response from Yahoo Finance
         """
-        return self._get(self.chart_url)
+        return self._get(self.chart_base_url)
 
     def get_equity_quote_data(self: Reader) -> str:
         """
@@ -167,9 +228,6 @@ class Reader:
 
         :param self -> ``Reader``:
         :returns result -> ``Dict[str, Any]``: Dict containing short name and ticker symbol data.
-
-        #TODO: when CLI is setup, lets take the list of companies returned from the reverse lookup and allow the user to select which one they want to see.
-        # ! kinda like how GitHub offers various authentication options and you get to choose.
         """
         json_response = self._get(self.company_url)
 

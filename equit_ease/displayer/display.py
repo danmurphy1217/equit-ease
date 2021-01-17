@@ -1,14 +1,9 @@
 from __future__ import annotations
-from datetime import datetime
-import os
+import re
 import dataclasses
-from typing import Any, List, Tuple, Set
+from typing import Any, List
 
-from requests.api import head
-
-from equit_ease.datatypes.equity_meta import EquityMeta
 from equit_ease.parser.parse import Parser
-from equit_ease.displayer.format import Formatter
 from equit_ease.utils.Constants import Constants
 
 
@@ -38,14 +33,59 @@ class Displayer(Parser):
         return result
 
 
-class ChartDisplayer(Displayer):
+class HistoricalDisplayer(Displayer):
     """"contains methods used solely for the displayment of the chart data."""
 
-    def __init__(self, x_axes, y_axes, title):
-        self.x_axes = x_axes
-        self.y_axes = y_axes
-        self.title = title
+    def __init__(self, reader):
+        self.chart_one_year_url = reader.chart_one_year_url
+        self.chart_six_months_url = reader.chart_six_months_url
+        self.chart_three_months_url = reader.chart_three_months_url
+        self.chart_one_month_url = reader.chart_one_month_url
+        self.chart_five_days_url = reader.chart_five_days_url
 
+    def display_historical(self, instance_var_to_access: str) -> str:
+        """
+        Given a valid class instance variable, retrieve it and use it's
+        value to send a GET request to yahoo finance.
+
+        :param instance_var_to_access -> ``str``: a valid class instance variable to access.
+
+        :returns result -> ``str``: _TBD_
+        """
+        trading_days_per_week = 5
+        weeks_per_month = 4
+
+        def get_historical_data_from(one_year_data: List[int | float], num_months_to_retrieve: int) -> List[int | float]:
+            """
+            extract six months of data from a list containing the previous years worth
+            of data points.
+
+            :param one_year_data -> ``List[int | float]``: a list of the previous years data.
+
+            :return result -> ``List[int | float]``: six previous months of data.
+            """
+            if num_months_to_retrieve > 12:
+                raise ValueError("Number of months to extract must be less than or equal to 12.")
+
+            num_weeks = weeks_per_month*num_months_to_retrieve
+            num_trading_days = trading_days_per_week*num_weeks
+
+            return one_year_data[-num_trading_days:] # slice off the previous ``num_trading_days``
+
+
+        attr_data = getattr(self, instance_var_to_access, None)
+        if (attr_data) and (re.match(r"^(https|http)", attr_data)):
+            get_request_response = self._get(attr_data)
+            filtered_response_data = get_request_response["chart"]["result"][0]
+            daily_close_data = self._extract_data_from(filtered_response_data["indicators"]["quote"][0], "close")
+
+            return get_historical_data_from(daily_close_data, 12),\
+                   get_historical_data_from(daily_close_data, 6),\
+                   get_historical_data_from(daily_close_data, 3),\
+                   get_historical_data_from(daily_close_data, 1)
+
+        else:
+            raise ValueError(f"Invalid Class Instance Variable. {instance_var_to_access} does not exist.")
 
 class QuoteDisplayer(Displayer):
     """contains methods used solely for the displayment of quote data."""
