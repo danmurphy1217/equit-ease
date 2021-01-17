@@ -89,7 +89,8 @@ class ChartParser(Parser):
 
     #!TODO: Neither of these are necessary...
 
-    def _standardize(self, item_to_standardize: List[float | None]) -> List[float]:
+    @staticmethod
+    def standardize(item_to_standardize: List[float | None]) -> List[float]:
         """
         retrieves the mean of the items in the list (after removing none types),
         then replaces none types with the mean
@@ -101,7 +102,7 @@ class ChartParser(Parser):
         """
         # TODO: is there a better approach for 'standardization'? Is this approach dirtying the data?
         remove_none_types = [item for item in item_to_standardize if item is not None]
-        print(item_to_standardize)
+
         avg_of_filtered_items = sum(remove_none_types) / len(remove_none_types)
 
         result = [
