@@ -72,13 +72,17 @@ class TrendsDisplayer(Displayer):
         if (attr_data) and (re.match(r"^(https|http)", attr_data)):
             get_request_response = self._get(attr_data)
             filtered_response_data = get_request_response["chart"]["result"][0]
-            
-            daily_close_data = ChartParser.standardize(self._extract_data_from(
-                filtered_response_data["indicators"]["quote"][0], "close"
-            ))
-            daily_open_data = ChartParser.standardize(self._extract_data_from(
-                filtered_response_data["indicators"]["quote"][0], "open"
-            ))
+
+            daily_close_data = ChartParser.standardize(
+                self._extract_data_from(
+                    filtered_response_data["indicators"]["quote"][0], "close"
+                )
+            )
+            daily_open_data = ChartParser.standardize(
+                self._extract_data_from(
+                    filtered_response_data["indicators"]["quote"][0], "open"
+                )
+            )
 
             time_series_initial_open = daily_open_data[0]
             time_series_final_close = daily_close_data[-1]
@@ -117,13 +121,13 @@ class TrendsDisplayer(Displayer):
             result = "unchanged"
 
         return result
-    
+
     def get_percentage_changes(self, *args):
         """
         get percentage changes for each provided arg in ``args``.
 
         args:
-            
+
         """
         price_trends = list()
         for arg in args:

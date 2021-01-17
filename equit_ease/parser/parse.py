@@ -153,9 +153,8 @@ class ChartParser(Parser):
 class UserConfigParser(Reader):
     def __init__(self, list_name: str, list_of_file_contents: List[str]) -> None:
         self.list_name = list_name
-        self.list_of_file_contents = list_of_file_contents    
-    
-    
+        self.list_of_file_contents = list_of_file_contents
+
     def format_equity_lists(self: UserConfigParser):
         """
         search the lists file located in $HOME/.equit_ease/lists, gather a data
@@ -163,15 +162,16 @@ class UserConfigParser(Reader):
 
         :self -> ``UserConfigParser``:
         """
-        all_list_names = filter(re.compile(r"^\[[a-zA-Z0-9]").search, self.list_of_file_contents)
-        formatted_list_names = lambda list_names : [name.strip("[]") for name in list_names]
+        all_list_names = filter(
+            re.compile(r"^\[[a-zA-Z0-9]").search, self.list_of_file_contents
+        )
+        formatted_list_names = lambda list_names: [
+            name.strip("[]") for name in list_names
+        ]
         list_of_formatted_list_names = formatted_list_names(list(all_list_names))
         string_of_formatted_list_names = ", ".join(list_of_formatted_list_names)
-        return (
-            list_of_formatted_list_names,
-            string_of_formatted_list_names
-        )
-    
+        return (list_of_formatted_list_names, string_of_formatted_list_names)
+
     def find_match(self: UserConfigParser) -> None:
         """
         iterate over equity list names and find a match. Then, if a match is found,

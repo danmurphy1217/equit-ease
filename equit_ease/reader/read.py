@@ -55,11 +55,11 @@ class Reader:
         else:
             result = json_data[key_to_extract]
         return result
-    
+
     def set_ticker_and_name_props_to(self, ticker_val: str, name_val: str) -> None:
         """
         handle setting the `ticker` and `name` props for the class
-        instance. Since these two setters are called in tandom, it 
+        instance. Since these two setters are called in tandom, it
         makes most sense to extrapolate them to a public method
         that is called with the values to set.
 
@@ -71,7 +71,7 @@ class Reader:
         """
         self.ticker = ticker_val
         self.name = name_val
-    
+
     def build_urls(self):
         """
         calls private methods that build the Quote and Chart URLs.
@@ -81,7 +81,7 @@ class Reader:
         """
         self.build_equity_quote_url()
         self.build_equity_chart_url()
-    
+
     def get_data(self):
         """
         public interface used to call the private methods that retrieve
