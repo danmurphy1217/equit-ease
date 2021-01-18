@@ -13,7 +13,8 @@ from equit_ease.parser.parse import QuoteParser, UserConfigParser
 from equit_ease.displayer.display import QuoteDisplayer, TrendsDisplayer
 
 
-__version__ = '0.0.1'
+__version__ = "0.0.1"
+
 
 def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     """
@@ -27,7 +28,7 @@ def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "config",
         type=str,
         nargs="?",
-        help="create a named list of stocks that can easily be retrieved later with the ``--list`` or ``-l`` flag.",
+        help="""Create a named list of stocks. Run ``equity config`` to create a list and then ``equity --list [LIST]``\nor ``equity -l [LIST]`` to retrieve data for each stock in that list. EXAMPLE:\n>>> equity config\n? List Name: My First List\n? Equities to include in list: CRM, AAPL, MSFT\n>>> equity --list 'My First List'\n[CRM result]\n[AAPL result]\n[MSFT result]"""
     )
 
     parser.add_argument(
@@ -35,14 +36,20 @@ def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "-f",
         type=str,
         default="True",
-        help="If `False`, shows a list of all equities returned from the reverse lookup and lets you choose which one to retrieve data for. This is useful if you want to ensure that the data returned matches the equity you truly want to search for. If `True` (default), sends a request matching the first ticker returned from the reverse lookup.",
+        help="""Deaults to `True`. If `False`, shows a list of all equities returned from the reverse lookup and\nlets you choose which one to display data for. This is useful if you do not know the ticker symbol\nand want to ensure the correct data is displayed. If `True`, sends a request matching the first\nticker returned from the reverse lookup. EXAMPLE:\n>>>equity --name Bitcoin --force False\n? Select The Correct Equity:\n> BTC-USD [return]\n  GBTC\n  BTCUSD=X\n  BTC-CAD\n  BTC-EUR\n\n[BTC-USD result]\n\n>>> equity --name Bitcoin\n\n[BTC-USD result]\t\t\t(defaults to --force True)\n\n""",
     )
 
     parser.add_argument(
-        "--name", "-n", type=str, help="the equity to retrieve data for."
+        "--name", 
+        "-n",
+        type=str,
+        help="""The name or ticker of the equity to retrieve. Since reverse lookup functionality is supported,\nyou can specify `BTC`, `BTC-USD`,or `Bitcoin` and receive the exact same data. EXAMPLE:\n>>> equity --name Bitcoin\n[BTC-USD result]\n>>> equity --name Salesforce\n[CRM result]\n>>> equity --name CRM\n[CRM result]\t\t\t(same as above!)\n\n"""
     )
     parser.add_argument(
-        "--list", "-l", type=str, help="the equity to retrieve data for."
+        "--list",
+        "-l",
+        type=str,
+        help="""must be a valid list that was configured with ``equity config``. If an invalid list is provided,\na ``argparse.ArgumentError`` is thrown. EXAMPLE:\n>>> equity --list 'My First List'\n[CRM result]\n[AAPL result]\n[MSFT result]\n\n>>> equity --list 'Invalid List Name'\nargparse.ArgumentError: 'Invalid List Name' does not exist. Try: My First List.\n\n"""
     )
 
     return parser
@@ -157,7 +164,7 @@ class ArgsHandler:
             Otherwise, all values from the reverse lookup are displayed and the
             user is prompted to choose which one should be searched.
 
-            :param use_force -> ``bool``: if False, render the propmt. Otherwise, utilize first
+            :param use_force -> ``bool``: if False, render the propmt. Otherwise, utilize first ticker.
             """
             if use_force == "False":
                 long_name, ticker, choices = reader.get_equity_company_data(
@@ -178,7 +185,9 @@ class ArgsHandler:
                 long_name, ticker = reader.get_equity_company_data(force="True")
                 return long_name, ticker
             else:
-                long_name, ticker = reader.get_equity_company_data(force=self.args_data.force)
+                long_name, ticker = reader.get_equity_company_data(
+                    force=self.args_data.force
+                )
                 return long_name, ticker
 
         reader = Reader(self.args_data.name)
@@ -228,7 +237,8 @@ class ArgsHandler:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="The easiest way to access data about your favorite stocks from the command line."
+        description="The easiest way to access data about your favorite stocks from the command line.",
+        formatter_class= argparse.RawTextHelpFormatter
     )
     parser = init_parser(parser=parser)
     args = parser.parse_args()
@@ -238,15 +248,13 @@ def main():
         if args.config == "config":
             args_handler.handle_config()
         else:
-            parser.error(
-                f"Unrecognized Argument: `{args.config}`."
-            )
+            parser.error(f"Unrecognized Argument: `{args.config}`.")
 
     elif args.name:
         args_handler.handle_equity()
 
     elif args.list:
-        user_home_dir = home = str(Path.home())  # same as os.path.expanduser("~")
+        user_home_dir = str(Path.home())  # same as os.path.expanduser("~")
         equit_ease_dir = os.path.join(user_home_dir, ".equit_ease")
         lists_file_path = Path(os.path.join(equit_ease_dir, "lists"))
 
@@ -266,14 +274,16 @@ def main():
             ) = user_config.format_equity_lists()
 
             if equity_list_name not in list_of_formatted_list_names:
-                raise ValueError(
-                    f"'{equity_list_name}' does not exist. Try: {string_of_all_formatted_list_names}"
+                raise argparse.ArgumentError(
+                    None, message= f"'{equity_list_name}' does not exist. Try: {string_of_all_formatted_list_names}"
                 )
             else:
                 equities_to_search = user_config.find_match()
 
                 for equity in equities_to_search:
-                    new_args_handler = ArgsHandler(argparse.Namespace(name=equity, force="True"))
+                    new_args_handler = ArgsHandler(
+                        argparse.Namespace(name=equity, force="True")
+                    )
                     new_args_handler.handle_equity()
 
 
