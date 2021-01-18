@@ -1,3 +1,6 @@
+#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 from __future__ import annotations
 import argparse
 from PyInquirer import prompt
@@ -9,6 +12,8 @@ from equit_ease.reader.read import Reader
 from equit_ease.parser.parse import QuoteParser, UserConfigParser
 from equit_ease.displayer.display import QuoteDisplayer, TrendsDisplayer
 
+
+__version__ = '0.0.1'
 
 def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     """
@@ -34,7 +39,7 @@ def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
-        "--equity", "-e", type=str, help="the equity to retrieve data for."
+        "--name", "-n", type=str, help="the equity to retrieve data for."
     )
     parser.add_argument(
         "--list", "-l", type=str, help="the equity to retrieve data for."
@@ -173,13 +178,13 @@ class ArgsHandler:
                 long_name, ticker = reader.get_equity_company_data(force="True")
                 return long_name, ticker
             else:
-                long_name, ticker = reader.get_equity_company_data(force=args.force)
+                long_name, ticker = reader.get_equity_company_data(force=self.args_data.force)
                 return long_name, ticker
 
-        reader = Reader(self.args_data.equity)
+        reader = Reader(self.args_data.name)
         reader.build_company_lookup_url()
 
-        long_name, ticker = handle_force(args.force)
+        long_name, ticker = handle_force(self.args_data.force)
 
         reader.set_ticker_and_name_props_to(ticker, long_name)
         reader.build_urls()
@@ -221,7 +226,7 @@ class ArgsHandler:
         trends_displayer.display(equity_five_days_percentage_change, "1 week")
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(
         description="The easiest way to access data about your favorite stocks from the command line."
     )
@@ -234,10 +239,10 @@ if __name__ == "__main__":
             args_handler.handle_config()
         else:
             parser.error(
-                f"Unrecognized Argument: `{args.config}`. Did you mean `python3 main.py config`?"
+                f"Unrecognized Argument: `{args.config}`."
             )
 
-    elif args.equity:
+    elif args.name:
         args_handler.handle_equity()
 
     elif args.list:
@@ -247,7 +252,7 @@ if __name__ == "__main__":
 
         if not os.path.exists(lists_file_path):
             raise FileNotFoundError(
-                "You do not have any lists configured yet. Run ``python3 main.py config`` to setup your first list!"
+                "You do not have any lists configured yet. Run ``equity config`` to setup your first list!"
             )
         else:
             with open(lists_file_path, "r") as f:
@@ -268,5 +273,9 @@ if __name__ == "__main__":
                 equities_to_search = user_config.find_match()
 
                 for equity in equities_to_search:
-                    new_args_handler = ArgsHandler(argparse.Namespace(equity=equity))
+                    new_args_handler = ArgsHandler(argparse.Namespace(name=equity, force="True"))
                     new_args_handler.handle_equity()
+
+
+if __name__ == "__main__":
+    main()
