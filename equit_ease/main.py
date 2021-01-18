@@ -6,6 +6,7 @@ import argparse
 from PyInquirer import prompt
 import os
 from pathlib import Path
+import sys
 
 import PyInquirer
 from equit_ease.reader.read import Reader
@@ -13,7 +14,7 @@ from equit_ease.parser.parse import QuoteParser, UserConfigParser
 from equit_ease.displayer.display import QuoteDisplayer, TrendsDisplayer
 
 
-__version__ = "0.0.1"
+# __version__="0.0.1"
 
 
 def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
@@ -235,7 +236,7 @@ class ArgsHandler:
         trends_displayer.display(equity_five_days_percentage_change, "1 week")
 
 
-def main():
+def run():
     parser = argparse.ArgumentParser(
         description="The easiest way to access data about your favorite stocks from the command line.",
         formatter_class= argparse.RawTextHelpFormatter
@@ -286,6 +287,5 @@ def main():
                     )
                     new_args_handler.handle_equity()
 
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    run()
