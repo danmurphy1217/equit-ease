@@ -19,5 +19,5 @@ setup(
     description = "The easiest way to retrieve equity data from the command line. Search Stocks, Options, Cryptocurrencies and other digital assets, and more in a manner of seconds.",
     author= "Dan Murphy",
     author_email = "danielmurph8@gmail.com",
-    install_requires=[open("requirements.txt").read().splitlines()]
+    install_requires=[*open("requirements.txt").read().splitlines()]
 )
