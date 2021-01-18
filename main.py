@@ -1,3 +1,6 @@
+#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 from __future__ import annotations
 import argparse
 from PyInquirer import prompt
@@ -9,6 +12,8 @@ from equit_ease.reader.read import Reader
 from equit_ease.parser.parse import QuoteParser, UserConfigParser
 from equit_ease.displayer.display import QuoteDisplayer, TrendsDisplayer
 
+
+__version__ = '0.0.1'
 
 def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     """
@@ -220,6 +225,8 @@ class ArgsHandler:
         trends_displayer.display(equity_one_month_percentage_change, "1 month")
         trends_displayer.display(equity_five_days_percentage_change, "1 week")
 
+
+# def main():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
