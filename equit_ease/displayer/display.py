@@ -1,3 +1,6 @@
+#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 from __future__ import annotations
 import re
 import dataclasses
@@ -114,11 +117,11 @@ class TrendsDisplayer(Displayer):
         result = ""
 
         if equity_percent_change > 0:
-            result = "up"
+            result = "⬆ (up)"
         elif equity_percent_change < 0:
-            result = "down"
+            result = "⬇ (down)"
         else:
-            result = "unchanged"
+            result = "⟷ (unchanged)"
 
         return result
 
