@@ -239,7 +239,7 @@ def main():
             args_handler.handle_config()
         else:
             parser.error(
-                f"Unrecognized Argument: `{args.config}`. Did you mean `python3 main.py config`?"
+                f"Unrecognized Argument: `{args.config}`."
             )
 
     elif args.name:
@@ -252,7 +252,7 @@ def main():
 
         if not os.path.exists(lists_file_path):
             raise FileNotFoundError(
-                "You do not have any lists configured yet. Run ``python3 main.py config`` to setup your first list!"
+                "You do not have any lists configured yet. Run ``equity config`` to setup your first list!"
             )
         else:
             with open(lists_file_path, "r") as f:
