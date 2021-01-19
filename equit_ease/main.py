@@ -52,10 +52,15 @@ def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         help="""must be a valid list that was configured with ``equity config``. If an invalid list is provided,\na ``argparse.ArgumentError`` is thrown. EXAMPLE:\n>>> equity --list 'My First List'\n[CRM result]\n[AAPL result]\n[MSFT result]\n\n>>> equity --list 'Invalid List Name'\nargparse.ArgumentError: 'Invalid List Name' does not exist. Try: My First List.\n\n"""
     )
 
+    # default is the value the arg is set to when it is not called
+    # const is the value the arg is set to when it is called with no value
+    # https://stackoverflow.com/questions/27694032/difference-between-default-and-store-const-in-argparse#:~:text=default%20is%20the%20value%20that,value%20it%20gets%20when%20given.&text=The%20Action%20object%20that%20it,It%20also%20has%20nargs%3D0%20.
     parser.add_argument(
         "--update",
         "-u",
         type=str,
+        const="*",
+        nargs="?",
         help="""Update a list. You can call ``equity --update`` or ``equity --update [LIST NAME]``. If you provide\na list name, that list is retrieved and its name and list of equities is returned. Otherwise, you\nare prompted to choose which list to edit."""
     )
 
@@ -300,7 +305,11 @@ def run():
         with open(lists_file_path, "r") as f:
             file_contents_lines = f.read().splitlines()
         
-        print(file_contents_lines)
+        equity_name = args.update
+        if equity_name == "*":
+            print("Display all list names here")
+        else:
+            print("retrieve specific list and its assigned equities, allow user to edit them inline.")
 
 if __name__ == '__main__':
     run()
