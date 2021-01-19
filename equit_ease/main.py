@@ -306,10 +306,12 @@ def run():
             file_contents_lines = f.read().splitlines()
         
         equity_name = args.update
+        user_config = UserConfigParser(equity_name, file_contents_lines)
         if equity_name == "*":
-            print("Display all list names here")
+            list_of_equity_names, _ = user_config.format_equity_lists()
+            print(list_of_equity_names)
         else:
-            print("retrieve specific list and its assigned equities, allow user to edit them inline.")
+            print(user_config.find_match())
 
 if __name__ == '__main__':
     run()
