@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import dataclasses
 from typing import Any, List
+import datetime
 
 from equit_ease.parser.parse import Parser, ChartParser
 from equit_ease.utils.Constants import Constants
@@ -171,6 +172,12 @@ class QuoteDisplayer(Displayer):
 
         for key, value in dataclass_as_dict.items():
             if key in Constants.default_display_data:
+                if key == 'next_dividend_date':
+                    value = ( 
+                        datetime.datetime.utcfromtimestamp(int(value)).strftime('%Y-%m-%d %H:%M:%S')
+                        if value != "N/A"
+                        else "N/A"
+                    )
 
                 formatted_key = self.set_formatting(key, ["split", "capitalize"])
                 max_padding = (
