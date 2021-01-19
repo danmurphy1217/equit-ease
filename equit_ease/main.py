@@ -312,6 +312,7 @@ def run():
             print(list_of_equity_names)
         else:
             print(user_config.find_match())
+            #FIXME: should i setup a `@property` in UserConfigParser to get and set the equity list name/list of equities?
 
 if __name__ == '__main__':
     run()
