@@ -6,7 +6,6 @@ import argparse
 from PyInquirer import prompt
 import os
 from pathlib import Path
-import sys
 
 import PyInquirer
 from equit_ease.reader.read import Reader
@@ -51,6 +50,13 @@ def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "-l",
         type=str,
         help="""must be a valid list that was configured with ``equity config``. If an invalid list is provided,\na ``argparse.ArgumentError`` is thrown. EXAMPLE:\n>>> equity --list 'My First List'\n[CRM result]\n[AAPL result]\n[MSFT result]\n\n>>> equity --list 'Invalid List Name'\nargparse.ArgumentError: 'Invalid List Name' does not exist. Try: My First List.\n\n"""
+    )
+
+    parser.add_argument(
+        "--update",
+        "-u",
+        type=str,
+        help="""Update a list. You can call ``equity --update`` or ``equity --update [LIST NAME]``. If you provide\na list name, that list is retrieved and its name and list of equities is returned. Otherwise, you\nare prompted to choose which list to edit."""
     )
 
     return parser
@@ -237,6 +243,7 @@ class ArgsHandler:
 
 
 def run():
+
     parser = argparse.ArgumentParser(
         description="The easiest way to access data about your favorite stocks from the command line.",
         formatter_class= argparse.RawTextHelpFormatter
@@ -245,7 +252,12 @@ def run():
     args = parser.parse_args()
     args_handler = ArgsHandler(args)
 
+    user_home_dir = str(Path.home())  # same as os.path.expanduser("~")
+    equit_ease_dir = os.path.join(user_home_dir, ".equit_ease")
+    lists_file_path = Path(os.path.join(equit_ease_dir, "lists"))
+
     if args.config:
+        # TODO: add correct checks to validate answers in handle_config
         if args.config == "config":
             args_handler.handle_config()
         else:
@@ -255,9 +267,6 @@ def run():
         args_handler.handle_equity()
 
     elif args.list:
-        user_home_dir = str(Path.home())  # same as os.path.expanduser("~")
-        equit_ease_dir = os.path.join(user_home_dir, ".equit_ease")
-        lists_file_path = Path(os.path.join(equit_ease_dir, "lists"))
 
         if not os.path.exists(lists_file_path):
             raise FileNotFoundError(
@@ -286,6 +295,12 @@ def run():
                         argparse.Namespace(name=equity, force="True")
                     )
                     new_args_handler.handle_equity()
+    
+    elif args.update:
+        with open(lists_file_path, "r") as f:
+            file_contents_lines = f.read().splitlines()
+        
+        print(file_contents_lines)
 
 if __name__ == '__main__':
     run()
