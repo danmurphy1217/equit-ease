@@ -154,9 +154,31 @@ class ChartParser(Parser):
 
 
 class UserConfigParser(Reader):
-    def __init__(self, list_name: str, list_of_file_contents: List[str]) -> None:
+    def __init__(self, list_name: str, list_of_file_contents: List[str], equities: List[str]= None) -> None:
         self.list_name = list_name
         self.list_of_file_contents = list_of_file_contents
+        self.equities = equities
+    
+    @property
+    def equities(self: UserConfigParser) -> List[str]:
+        """`GETTER` for getting the equities assigned to a user-configured list."""
+        return self._equities
+    
+    @equities.setter
+    def equities(self: UserConfigParser, equities):
+        """`SETTER` for setting the equities assigned to a user-configured list."""
+        self._equities = equities
+    
+    @property
+    def list_name(self: UserConfigParser) -> str:
+        """`GETTER` for getting the name of the selected list."""
+        return self._list_name
+    
+    @list_name.setter
+    def list_name(self: UserConfigParser, list_name: str):
+        """`SETTER` for setting the name of the selected list."""
+        self._list_name = list_name
+
 
     def format_equity_lists(self: UserConfigParser):
         """

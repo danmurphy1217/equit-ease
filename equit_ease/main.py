@@ -4,7 +4,7 @@
 from __future__ import annotations
 import argparse
 from PyInquirer import prompt
-import os
+import os, sys
 from pathlib import Path
 
 import PyInquirer
@@ -13,7 +13,8 @@ from equit_ease.parser.parse import QuoteParser, UserConfigParser
 from equit_ease.displayer.display import QuoteDisplayer, TrendsDisplayer
 
 
-__version__ = "0.0.1"
+__equity_version__="0.0.4"
+__python_version__="3.9.0"
 
 
 def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
@@ -40,7 +41,7 @@ def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
-        "--name", 
+        "--name",
         "-n",
         type=str,
         help="""The name or ticker of the equity to retrieve. Since reverse lookup functionality is supported,\nyou can specify `BTC`, `BTC-USD`,or `Bitcoin` and receive the exact same data. EXAMPLE:\n>>> equity --name Bitcoin\n[BTC-USD result]\n>>> equity --name Salesforce\n[CRM result]\n>>> equity --name CRM\n[CRM result]\t\t\t(same as above!)\n\n"""
@@ -50,6 +51,27 @@ def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "-l",
         type=str,
         help="""must be a valid list that was configured with ``equity config``. If an invalid list is provided,\na ``argparse.ArgumentError`` is thrown. EXAMPLE:\n>>> equity --list 'My First List'\n[CRM result]\n[AAPL result]\n[MSFT result]\n\n>>> equity --list 'Invalid List Name'\nargparse.ArgumentError: 'Invalid List Name' does not exist. Try: My First List.\n\n"""
+    )
+
+    # default is the value the arg is set to when it is not called
+    # const is the value the arg is set to when it is called with no value
+    # https://stackoverflow.com/questions/27694032/difference-between-default-and-store-const-in-argparse#:~:text=default%20is%20the%20value%20that,value%20it%20gets%20when%20given.&text=The%20Action%20object%20that%20it,It%20also%20has%20nargs%3D0%20.
+    parser.add_argument(
+        "--update",
+        "-u",
+        type=str,
+        const="*",
+        nargs="?",
+        help="""Update a list. You can call ``equity --update`` or ``equity --update [LIST NAME]``. If you provide\na list name, that list is retrieved and its name and list of equities is returned. Otherwise, you\nare prompted to choose which list to edit."""
+    )
+
+    parser.add_argument(
+        "--version",
+        "-v",
+        type=str,
+        const="*",
+        nargs="?",
+        help="""Displays the version for the CLI."""
     )
 
     return parser
@@ -77,7 +99,8 @@ class ArgsHandler:
         list_file_path.touch()  # create config file
         with open(list_file_path, "w") as f:
             init_list_name = answers["list_name"]
-            cleaner = lambda equity_names_list: [
+
+            def cleaner(equity_names_list): return [
                 name.strip() for name in equity_names_list
             ]
             equity_names = answers["equities_in_list"]
@@ -102,7 +125,7 @@ class ArgsHandler:
         :returns True -> ``bool``:
         """
         with open(lists_file_path, "a") as f:
-            cleaner = lambda equity_names_list: [
+            def cleaner(equity_names_list): return [
                 name.strip() for name in equity_names_list
             ]
             list_name = answers["list_name"]
@@ -131,7 +154,7 @@ class ArgsHandler:
                 "message": "Equities to include in list:",
             },
         ]
-        answers = prompt(questions, style=None)
+        equities_for_list = prompt(questions, style=None)
 
         user_home_dir = os.environ.get("HOME")
         equit_ease_dir_path = os.path.join(user_home_dir, ".equit_ease")
@@ -139,9 +162,10 @@ class ArgsHandler:
         config_file_path = Path(os.path.join(equit_ease_dir_path, "lists"))
 
         if not os.path.exists(os_agnostic_path):
-            self._setup_dir_structure(os_agnostic_path, config_file_path, answers)
+            self._setup_dir_structure(
+                os_agnostic_path, config_file_path, equities_for_list)
         else:
-            self._add_to_lists(config_file_path, answers)
+            self._add_to_lists(config_file_path, equities_for_list)
 
     def handle_equity(self):
         """
@@ -182,7 +206,8 @@ class ArgsHandler:
                 # update equity name based off selection, build new URL, and repeat process
                 reader.equity = answers["Equity_Name"]
                 reader.build_company_lookup_url()
-                long_name, ticker = reader.get_equity_company_data(force="True")
+                long_name, ticker = reader.get_equity_company_data(
+                    force="True")
                 return long_name, ticker
             else:
                 long_name, ticker = reader.get_equity_company_data(
@@ -200,7 +225,8 @@ class ArgsHandler:
 
         equity_quote_data = reader.get_data()
 
-        quote_parser = QuoteParser(equity=reader.equity, data=equity_quote_data)
+        quote_parser = QuoteParser(
+            equity=reader.equity, data=equity_quote_data)
         quote_data = quote_parser.extract_equity_meta_data()
 
         quote_displayer = QuoteDisplayer(reader.equity, quote_data)
@@ -229,22 +255,32 @@ class ArgsHandler:
         print(f"\n{reader.ticker} is:\n")
 
         trends_displayer.display(equity_one_year_percentage_change, "year")
-        trends_displayer.display(equity_six_months_percentage_change, "6 months")
-        trends_displayer.display(equity_three_months_percentage_change, "3 months")
+        trends_displayer.display(
+            equity_six_months_percentage_change, "6 months")
+        trends_displayer.display(
+            equity_three_months_percentage_change, "3 months")
         trends_displayer.display(equity_one_month_percentage_change, "1 month")
         trends_displayer.display(equity_five_days_percentage_change, "1 week")
 
 
-def main():
+def run():
+
     parser = argparse.ArgumentParser(
         description="The easiest way to access data about your favorite stocks from the command line.",
-        formatter_class= argparse.RawTextHelpFormatter
+        formatter_class=argparse.RawTextHelpFormatter,
+        # FIXME: decide what to do with default help... Do I want to handle that internally?
+        # add_help=False
     )
     parser = init_parser(parser=parser)
     args = parser.parse_args()
     args_handler = ArgsHandler(args)
 
+    user_home_dir = str(Path.home())  # same as os.path.expanduser("~")
+    equit_ease_dir = os.path.join(user_home_dir, ".equit_ease")
+    lists_file_path = Path(os.path.join(equit_ease_dir, "lists"))
+
     if args.config:
+        # TODO: add correct checks to validate answers in handle_config
         if args.config == "config":
             args_handler.handle_config()
         else:
@@ -254,9 +290,6 @@ def main():
         args_handler.handle_equity()
 
     elif args.list:
-        user_home_dir = str(Path.home())  # same as os.path.expanduser("~")
-        equit_ease_dir = os.path.join(user_home_dir, ".equit_ease")
-        lists_file_path = Path(os.path.join(equit_ease_dir, "lists"))
 
         if not os.path.exists(lists_file_path):
             raise FileNotFoundError(
@@ -267,7 +300,8 @@ def main():
                 file_contents_lines = f.read().splitlines()
 
             equity_list_name = args.list
-            user_config = UserConfigParser(equity_list_name, file_contents_lines)
+            user_config = UserConfigParser(
+                equity_list_name, file_contents_lines)
             (
                 list_of_formatted_list_names,
                 string_of_all_formatted_list_names,
@@ -275,7 +309,7 @@ def main():
 
             if equity_list_name not in list_of_formatted_list_names:
                 raise argparse.ArgumentError(
-                    None, message= f"'{equity_list_name}' does not exist. Try: {string_of_all_formatted_list_names}"
+                    None, message=f"'{equity_list_name}' does not exist. Try: {string_of_all_formatted_list_names}"
                 )
             else:
                 equities_to_search = user_config.find_match()
@@ -286,6 +320,76 @@ def main():
                     )
                     new_args_handler.handle_equity()
 
+    elif args.update:
+        with open(lists_file_path, "r") as f:
+            file_contents_lines = f.read().splitlines()
 
-if __name__ == "__main__":
-    main()
+        equity_name = args.update
+        user_config = UserConfigParser(equity_name, file_contents_lines)
+        if equity_name == "*":
+            # no input was provided
+            list_of_equity_names, _ = user_config.format_equity_lists()
+            user_input = [
+                    {
+                        "type": "list",
+                        "name": "Selected_List",
+                        "message": "Select Which List to Edit:",
+                        "choices": list_of_equity_names,
+                    }
+                ]
+            selected_list = prompt(user_input, style=None)['Selected_List']
+            user_config.list_name = selected_list
+            user_config.equities = user_config.find_match()
+
+            user_input = [
+                    {
+                        "type": "input",
+                        "name": "Updated_Equities",
+                        "message": "Edit The List:",
+                        "default": ",".join(user_config.equities)
+                    }
+                ]
+            updated_equity_list = prompt(user_input, style=None)['Updated_Equities']
+
+            with open(lists_file_path, "r") as f:
+                file_lines = f.readlines()
+                print(file_lines)
+                i = file_lines.index(f"[{user_config.list_name}]\n")
+                file_lines[i+1] = f"equity_names = {updated_equity_list}\n"
+            
+            with open(lists_file_path, "w") as f:
+                f.writelines(file_lines)
+        else:
+            # input was provided...
+            user_config.equities = user_config.find_match()
+            user_input = [
+                    {
+                        "type": "input",
+                        "name": "Updated_Equities",
+                        "message": "Edit The List:",
+                        "default": ",".join(user_config.equities)
+                    }
+                ]
+            updated_equity_list = prompt(user_input, style=None)['Updated_Equities']
+            print(updated_equity_list)
+            def cleaner(equity_names_list): return [
+                    name.strip() for name in equity_names_list
+                ]
+            user_config.equities = ",".join(cleaner(updated_equity_list.split(",")))
+            print(user_config.equities)
+            with open(lists_file_path, "r") as f:
+                file_lines = f.readlines()
+                print(file_lines)
+                i = file_lines.index(f"[{user_config.list_name}]\n")
+                file_lines[i+1] = f"equity_names = {user_config.equities}\n"
+            
+            with open(lists_file_path, "w") as f:
+                f.writelines(file_lines)
+            # FIXME: should i setup a `@property` in UserConfigParser to get and set the equity list name/list of equities?
+    
+    elif args.version:
+        sys.stdout.write(f"equity-cli/{__equity_version__} Python/{__python_version__}\n")
+
+
+if __name__ == '__main__':
+    run()
