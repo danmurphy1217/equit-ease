@@ -279,7 +279,8 @@ class ArgsHandler:
         # TODO: handle list arg
         equity_list_name = self.args_data.list
         user_config = UserConfigParser(
-            equity_list_name, files_contents)
+            equity_list_name, files_contents
+        )
         (
             list_of_formatted_list_names,
             string_of_all_formatted_list_names,
@@ -299,9 +300,70 @@ class ArgsHandler:
                 )
                 new_args_handler.handle_equity()
     
-    def handle_update():
+    def handle_update(self: ArgsHandler, file_contents: List[str], lists_file_path: Path):
         # TODO: handle update arg
-        return
+        equity_name = self.args_data.update
+        user_config = UserConfigParser(equity_name, file_contents)
+        list_of_equity_names, _ = user_config.format_equity_lists()
+        if equity_name == "*":
+            # no input was provided
+            user_input = [
+                    {
+                        "type": "list",
+                        "name": "Selected_List",
+                        "message": "Select Which List to Edit:",
+                        "choices": list_of_equity_names,
+                    }
+                ]
+            selected_list = prompt(user_input, style=None)['Selected_List']
+            user_config.list_name = selected_list
+            user_config.equities = user_config.find_match()
+
+            user_input = [
+                    {
+                        "type": "input",
+                        "name": "Updated_Equities",
+                        "message": "Edit The List:",
+                        "default": ",".join(user_config.equities)
+                    }
+                ]
+            updated_equity_list = prompt(user_input, style=None)['Updated_Equities']
+
+            with open(lists_file_path, "r") as f:
+                file_lines = f.readlines()
+
+                i = file_lines.index(f"[{user_config.list_name}]\n")
+                file_lines[i+1] = f"equity_names = {updated_equity_list}\n"
+            
+            with open(lists_file_path, "w") as f:
+                f.writelines(file_lines)
+        else:
+            # input was provided...
+            if not self.is_valid_name(equity_name, list_of_equity_names):
+                raise argparse.ArgumentError(None, f"Invalid List Name. Try {', '.join(list_of_equity_names)}")
+            user_config.equities = user_config.find_match()
+            user_input = [
+                    {
+                        "type": "input",
+                        "name": "Updated_Equities",
+                        "message": "Edit The List:",
+                        "default": ",".join(user_config.equities)
+                    }
+                ]
+            updated_equity_list = prompt(user_input, style=None)['Updated_Equities']
+
+            def cleaner(equity_names_list): return [
+                    name.strip() for name in equity_names_list
+                ]
+            user_config.equities = ",".join(cleaner(updated_equity_list.split(",")))
+
+            with open(lists_file_path, "r") as f:
+                file_lines = f.readlines()
+                i = file_lines.index(f"[{user_config.list_name}]\n")
+                file_lines[i+1] = f"equity_names = {user_config.equities}\n"
+            
+            with open(lists_file_path, "w") as f:
+                f.writelines(file_lines)
 
 def run():
 
@@ -345,69 +407,9 @@ def run():
         with open(lists_file_path, "r") as f:
             file_contents_lines = f.read().splitlines()
 
-        equity_name = args.update
-        user_config = UserConfigParser(equity_name, file_contents_lines)
-        list_of_equity_names, _ = user_config.format_equity_lists()
-        if equity_name == "*":
-            # no input was provided
-            user_input = [
-                    {
-                        "type": "list",
-                        "name": "Selected_List",
-                        "message": "Select Which List to Edit:",
-                        "choices": list_of_equity_names,
-                    }
-                ]
-            selected_list = prompt(user_input, style=None)['Selected_List']
-            user_config.list_name = selected_list
-            user_config.equities = user_config.find_match()
+        args_handler.handle_update(file_contents_lines, lists_file_path)
 
-            user_input = [
-                    {
-                        "type": "input",
-                        "name": "Updated_Equities",
-                        "message": "Edit The List:",
-                        "default": ",".join(user_config.equities)
-                    }
-                ]
-            updated_equity_list = prompt(user_input, style=None)['Updated_Equities']
-
-            with open(lists_file_path, "r") as f:
-                file_lines = f.readlines()
-
-                i = file_lines.index(f"[{user_config.list_name}]\n")
-                file_lines[i+1] = f"equity_names = {updated_equity_list}\n"
-            
-            with open(lists_file_path, "w") as f:
-                f.writelines(file_lines)
-        else:
-            # input was provided...
-            if not args_handler.is_valid_name(equity_name, list_of_equity_names):
-                raise argparse.ArgumentError(None, f"Invalid List Name. Try {', '.join(list_of_equity_names)}")
-            user_config.equities = user_config.find_match()
-            user_input = [
-                    {
-                        "type": "input",
-                        "name": "Updated_Equities",
-                        "message": "Edit The List:",
-                        "default": ",".join(user_config.equities)
-                    }
-                ]
-            updated_equity_list = prompt(user_input, style=None)['Updated_Equities']
-
-            def cleaner(equity_names_list): return [
-                    name.strip() for name in equity_names_list
-                ]
-            user_config.equities = ",".join(cleaner(updated_equity_list.split(",")))
-
-            with open(lists_file_path, "r") as f:
-                file_lines = f.readlines()
-                i = file_lines.index(f"[{user_config.list_name}]\n")
-                file_lines[i+1] = f"equity_names = {user_config.equities}\n"
-            
-            with open(lists_file_path, "w") as f:
-                f.writelines(file_lines)
-            # FIXME: should i setup a `@property` in UserConfigParser to get and set the equity list name/list of equities?
+        # FIXME: should i setup a `@property` in UserConfigParser to get and set the equity list name/list of equities?
     
     elif args.version:
         sys.stdout.write(f"equity-cli/{__equity_version__} Python/{__python_version__}\n")
