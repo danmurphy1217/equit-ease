@@ -24,10 +24,9 @@ __python_version__="3.9.0"
 
 # 1. Refactor handle_* methods. `handle_list` and `handle_update` are both similar enough to be refactored into one root method with some helpers.
         # similar to how handle_force is local-scope for handle_equity, I can write a method or two for handling handle_update with and without a list_name
-# 2. Determine whether to include `help` value support for each optional argument.
 # 3. unit tests and once-over of code, make any stylistic changes!
 # 4. Complete documentation
-# 5. clearer current price when valid hours.
+# 5. fixme in parse.py for removing synchronous calls and replacing them with 
 
 # TODO: end
 
@@ -96,6 +95,11 @@ class ArgsHandler:
         self.args_data = args_data
 
     @staticmethod
+    def cleaner(equity_names_list): return [
+                    name.strip() for name in equity_names_list
+                ]
+
+    @staticmethod
     def _setup_dir_structure(
         dir_path: Path, list_file_path: Path, answers: PyInquirer.prompt
     ) -> bool:
@@ -114,11 +118,8 @@ class ArgsHandler:
         with open(list_file_path, "w") as f:
             init_list_name = answers["list_name"]
 
-            def cleaner(equity_names_list): return [
-                name.strip() for name in equity_names_list
-            ]
             equity_names = answers["equities_in_list"]
-            equity_names_formatted = ",".join(cleaner(equity_names.split(",")))
+            equity_names_formatted = ",".join(self.cleaner(equity_names.split(",")))
 
             contents_for_file = (
                 f"""[{init_list_name}]\nequity_names = {equity_names_formatted}"""
@@ -139,12 +140,10 @@ class ArgsHandler:
         :returns True -> ``bool``:
         """
         with open(lists_file_path, "a") as f:
-            def cleaner(equity_names_list): return [
-                name.strip() for name in equity_names_list
-            ]
+
             list_name = answers["list_name"]
             equity_names = answers["equities_in_list"]
-            equity_names_formatted = ",".join(cleaner(equity_names.split(",")))
+            equity_names_formatted = ",".join(self.cleaner(equity_names.split(",")))
             contents_for_file = (
                 f"""\n[{list_name}]\nequity_names = {equity_names_formatted}"""
             )
@@ -207,7 +206,7 @@ class ArgsHandler:
         :param self -> ``Reader``:
         """
 
-        def handle_force(use_force: bool):
+        def handle_force():
             """
             used to handle the ``--force`` / ``-f`` flags. If the flag is set
             to True, the first ticker returned from the reverse lookup is used.
@@ -216,9 +215,9 @@ class ArgsHandler:
 
             :param use_force -> ``bool``: if False, render the propmt. Otherwise, utilize first ticker.
             """
-            if use_force == "False":
+            if self.args_data.force == "False":
                 long_name, ticker, choices = reader.get_equity_company_data(
-                    force=use_force
+                    force=self.args_data.force
                 )
                 questions = [
                     {
@@ -228,9 +227,9 @@ class ArgsHandler:
                         "choices": choices,
                     }
                 ]
-                answers = prompt(questions, style=None)
+                equity_name = prompt(questions, style=None)["Equity_Name"]
                 # update equity name based off selection, build new URL, and repeat process
-                reader.equity = answers["Equity_Name"]
+                reader.equity = equity_name
                 reader.build_company_lookup_url()
                 long_name, ticker = reader.get_equity_company_data(
                     force="True")
@@ -244,7 +243,7 @@ class ArgsHandler:
         reader = Reader(self.args_data.name)
         reader.build_company_lookup_url()
 
-        long_name, ticker = handle_force(self.args_data.force)
+        long_name, ticker = handle_force()
 
         reader.set_ticker_and_name_props_to(ticker, long_name)
         reader.build_urls()
@@ -294,7 +293,6 @@ class ArgsHandler:
         )
     
     def handle_list(self: ArgsHandler, files_contents: List[str]):
-        # TODO: handle list arg
         equity_list_name = self.args_data.list
         user_config = UserConfigParser(
             equity_list_name, files_contents
@@ -304,7 +302,7 @@ class ArgsHandler:
             string_of_all_formatted_list_names,
         ) = user_config.format_equity_lists()
 
-        if equity_list_name not in list_of_formatted_list_names:
+        if not self.is_valid_name(equity_list_name, list_of_formatted_list_names):
             extra_info = f"Try: {string_of_all_formatted_list_names}" if len(string_of_all_formatted_list_names) != 0 else "No lists are configured. Run ``equity config`` to get started!"
             raise argparse.ArgumentError(
                 None, message=f"'{equity_list_name}' does not exist. {extra_info}"
@@ -313,16 +311,24 @@ class ArgsHandler:
             equities_to_search = user_config.find_match()
 
             for equity in equities_to_search:
+                # FIXME: async
                 new_args_handler = ArgsHandler(
                     argparse.Namespace(name=equity, force="True")
                 )
                 new_args_handler.handle_equity()
     
     def handle_update(self: ArgsHandler, file_contents: List[str], lists_file_path: Path):
-        equity_name = self.args_data.update
-        user_config = UserConfigParser(equity_name, file_contents)
-        list_of_equity_names, _ = user_config.format_equity_lists()
-        if equity_name == "*":
+        def display_lists():
+            """"""
+        def display_equities_in_list():
+            """"""
+        equity_list_name = self.args_data.update
+        user_config = UserConfigParser(equity_list_name, file_contents)
+        (
+            list_of_equity_names,
+            string_of_all_formatted_list_names ) = user_config.format_equity_lists()
+
+        if equity_list_name == "*":
             # no input was provided
             user_input = [
                     {
@@ -332,8 +338,7 @@ class ArgsHandler:
                         "choices": list_of_equity_names,
                     }
                 ]
-            selected_list = prompt(user_input, style=None)['Selected_List']
-            user_config.list_name = selected_list
+            user_config.list_name = prompt(user_input, style=None)['Selected_List']
             user_config.equities = user_config.find_match()
 
             user_input = [
@@ -356,23 +361,23 @@ class ArgsHandler:
                 f.writelines(file_lines)
         else:
             # input was provided...
-            if not self.is_valid_name(equity_name, list_of_equity_names):
-                raise argparse.ArgumentError(None, f"Invalid List Name. Try {', '.join(list_of_equity_names)}")
-            user_config.equities = user_config.find_match()
+            if not self.is_valid_name(equity_list_name, list_of_equity_names):
+                extra_info = f"Try: {string_of_all_formatted_list_names}" if len(string_of_all_formatted_list_names) != 0 else "No lists are configured. Run ``equity config`` to get started!"
+                raise argparse.ArgumentError(
+                    None, message=f"'{equity_list_name}' does not exist. {extra_info}"
+                )
+            user_config.equities = ",".join(user_config.find_match())
             user_input = [
                     {
                         "type": "input",
                         "name": "Updated_Equities",
                         "message": "Edit The List:",
-                        "default": ",".join(user_config.equities)
+                        "default": user_config.equities
                     }
                 ]
             updated_equity_list = prompt(user_input, style=None)['Updated_Equities']
 
-            def cleaner(equity_names_list): return [
-                    name.strip() for name in equity_names_list
-                ]
-            user_config.equities = ",".join(cleaner(updated_equity_list.split(",")))
+            user_config.equities = ",".join(self.cleaner(updated_equity_list.split(",")))
 
             with open(lists_file_path, "r") as f:
                 file_lines = f.readlines()
@@ -425,8 +430,6 @@ def run():
             file_contents_lines = f.read().splitlines()
 
         args_handler.handle_update(file_contents_lines, lists_file_path)
-
-        # FIXME: should i setup a `@property` in UserConfigParser to get and set the equity list name/list of equities?
     
     elif args.version:
         sys.stdout.write(f"equity-cli/{__equity_version__} Python/{__python_version__}\n")
