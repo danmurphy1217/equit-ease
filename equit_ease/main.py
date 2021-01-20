@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 import argparse
+from typing import List
 from PyInquirer import prompt
 import os, sys
 from pathlib import Path
@@ -71,7 +72,7 @@ def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         type=str,
         const="*",
         nargs="?",
-        help="""Displays the version for the CLI."""
+        help="""Displays the CLI version."""
     )
 
     return parser
@@ -136,6 +137,18 @@ class ArgsHandler:
             )
             f.write(contents_for_file)
         return True
+
+    @staticmethod
+    def is_valid_name(list_name: str, list_of_configured_names: List[str]) -> bool:
+        """
+        Validate whether list_name is a valid list name. If valid, `True` is returned, otherwise `False`
+
+        :param list_name -> ``str``: the name of the list to validate.
+        :param list_of_configured_names -> ``List[str]``: a list of all user-configured lists.
+        :returns result -> bool: whether the list_name is valid or not.
+        """
+        result = list_name in list_of_configured_names
+        return result
 
     def handle_config(self: ArgsHandler):
         """
@@ -308,8 +321,9 @@ def run():
             ) = user_config.format_equity_lists()
 
             if equity_list_name not in list_of_formatted_list_names:
+                extra_info = f"Try: {string_of_all_formatted_list_names}" if len(string_of_all_formatted_list_names) != 0 else "No lists are configured. Run ``equity config`` to get started!"
                 raise argparse.ArgumentError(
-                    None, message=f"'{equity_list_name}' does not exist. Try: {string_of_all_formatted_list_names}"
+                    None, message=f"'{equity_list_name}' does not exist. {extra_info}"
                 )
             else:
                 equities_to_search = user_config.find_match()
@@ -326,9 +340,9 @@ def run():
 
         equity_name = args.update
         user_config = UserConfigParser(equity_name, file_contents_lines)
+        list_of_equity_names, _ = user_config.format_equity_lists()
         if equity_name == "*":
             # no input was provided
-            list_of_equity_names, _ = user_config.format_equity_lists()
             user_input = [
                     {
                         "type": "list",
@@ -361,6 +375,8 @@ def run():
                 f.writelines(file_lines)
         else:
             # input was provided...
+            if not args_handler.is_valid_name(equity_name, list_of_equity_names):
+                raise argparse.ArgumentError(None, f"Invalid List Name. Try {', '.join(list_of_equity_names)}")
             user_config.equities = user_config.find_match()
             user_input = [
                     {
@@ -371,15 +387,14 @@ def run():
                     }
                 ]
             updated_equity_list = prompt(user_input, style=None)['Updated_Equities']
-            print(updated_equity_list)
+
             def cleaner(equity_names_list): return [
                     name.strip() for name in equity_names_list
                 ]
             user_config.equities = ",".join(cleaner(updated_equity_list.split(",")))
-            print(user_config.equities)
+
             with open(lists_file_path, "r") as f:
                 file_lines = f.readlines()
-                print(file_lines)
                 i = file_lines.index(f"[{user_config.list_name}]\n")
                 file_lines[i+1] = f"equity_names = {user_config.equities}\n"
             
