@@ -127,8 +127,7 @@ class ArgsHandler:
             f.write(contents_for_file)
         return True
 
-    @staticmethod
-    def _add_to_lists(lists_file_path: Path, answers: PyInquirer.prompt) -> bool:
+    def add_to_lists(self, lists_file_path: Path, answers: PyInquirer.prompt) -> bool:
         """
         if the .equit_ease dir already exists, then append to the
         lists ASCII text file in the directory (this file is created
@@ -190,7 +189,7 @@ class ArgsHandler:
             self._setup_dir_structure(
                 os_agnostic_path, config_file_path, equities_for_list)
         else:
-            self._add_to_lists(config_file_path, equities_for_list)
+            self.add_to_lists(config_file_path, equities_for_list)
 
     def handle_equity(self):
         """
@@ -318,74 +317,96 @@ class ArgsHandler:
                 new_args_handler.handle_equity()
     
     def handle_update(self: ArgsHandler, file_contents: List[str], lists_file_path: Path):
-        def display_lists():
-            """"""
-        def display_equities_in_list():
-            """"""
-        equity_list_name = self.args_data.update
-        user_config = UserConfigParser(equity_list_name, file_contents)
-        (
-            list_of_equity_names,
-            string_of_all_formatted_list_names ) = user_config.format_equity_lists()
+        def display_lists(equity_list_names: List[str]) -> str:
+            """
+            locally scoped function utilized to display all user-configured lists.
 
-        if equity_list_name == "*":
-            # no input was provided
+            :params equity_list_names -> ``List[str]``: all user configured list names.
+            :returns result -> ``str``: the list selected by the user.
+            """
             user_input = [
                     {
                         "type": "list",
                         "name": "Selected_List",
                         "message": "Select Which List to Edit:",
-                        "choices": list_of_equity_names,
+                        "choices": equity_list_names,
                     }
                 ]
-            user_config.list_name = prompt(user_input, style=None)['Selected_List']
-            user_config.equities = user_config.find_match()
+            result = prompt(user_input, style=None)['Selected_List']
+            return result
 
+        def display_equities_in_list(equities: List[str]):
+            """
+            locally scoped function utilized to display the ticker symbols that belong to a user-configured list.
+
+            :param equities -> ``List[str]``:
+            :returns result -> ``str``: the updated comma-separated list of ticker symbols.
+            """
             user_input = [
                     {
                         "type": "input",
                         "name": "Updated_Equities",
                         "message": "Edit The List:",
-                        "default": ",".join(user_config.equities)
+                        "default": ",".join(equities)
                     }
                 ]
             updated_equity_list = prompt(user_input, style=None)['Updated_Equities']
-
-            with open(lists_file_path, "r") as f:
-                file_lines = f.readlines()
-
-                i = file_lines.index(f"[{user_config.list_name}]\n")
-                file_lines[i+1] = f"equity_names = {updated_equity_list}\n"
+            return updated_equity_list
+        
+        def write_to_file(file_lines: List[str]) -> None:
+            """
+            write new contents to `~/.equit_ease/lists`.
             
+            :param file_lines -> ``List[str]``: the updates lines for the file.
+            :returns -> ``None``:
+            """
             with open(lists_file_path, "w") as f:
-                f.writelines(file_lines)
-        else:
-            # input was provided...
-            if not self.is_valid_name(equity_list_name, list_of_equity_names):
-                extra_info = f"Try: {string_of_all_formatted_list_names}" if len(string_of_all_formatted_list_names) != 0 else "No lists are configured. Run ``equity config`` to get started!"
-                raise argparse.ArgumentError(
-                    None, message=f"'{equity_list_name}' does not exist. {extra_info}"
-                )
-            user_config.equities = ",".join(user_config.find_match())
-            user_input = [
-                    {
-                        "type": "input",
-                        "name": "Updated_Equities",
-                        "message": "Edit The List:",
-                        "default": user_config.equities
-                    }
-                ]
-            updated_equity_list = prompt(user_input, style=None)['Updated_Equities']
+                f.writelines(file_lines)   
 
-            user_config.equities = ",".join(self.cleaner(updated_equity_list.split(",")))
+        def update_file() -> List[str]:
+            """
+            update the `lists` file contents.
 
+            :param -> `None`:
+            """
             with open(lists_file_path, "r") as f:
                 file_lines = f.readlines()
                 i = file_lines.index(f"[{user_config.list_name}]\n")
                 file_lines[i+1] = f"equity_names = {user_config.equities}\n"
             
-            with open(lists_file_path, "w") as f:
-                f.writelines(file_lines)
+            return file_lines
+
+        equity_list_name = self.args_data.update
+        user_config = UserConfigParser(equity_list_name, file_contents)
+        (
+            equity_list_names,
+            string_of_all_formatted_list_names ) = user_config.format_equity_lists()
+
+        if equity_list_name == "*":
+            # no input provided
+            user_config.list_name = display_lists(equity_list_names)
+            user_config.equities = user_config.find_match()
+            
+            updated_equity_list = display_equities_in_list(user_config.equities)
+            user_config.equities = ",".join(self.cleaner(updated_equity_list.split(",")))
+            
+            updated_file_lines = update_file()
+
+            write_to_file(updated_file_lines)
+
+        else:
+            # input was provided...
+            if not self.is_valid_name(equity_list_name, equity_list_names):
+                extra_info = f"Try: {string_of_all_formatted_list_names}" if len(string_of_all_formatted_list_names) != 0 else "No lists are configured. Run ``equity config`` to get started!"
+                raise argparse.ArgumentError(
+                    None, message=f"'{equity_list_name}' does not exist. {extra_info}"
+                )
+
+            updated_equity_list = display_equities_in_list(user_config.find_match())
+            user_config.equities = ",".join(self.cleaner(updated_equity_list.split(",")))
+
+            updated_file_lines = update_file()
+            write_to_file(updated_file_lines)
 
 def run():
     """main function that is executed when a command is triggered."""
