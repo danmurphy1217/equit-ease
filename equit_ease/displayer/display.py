@@ -174,7 +174,7 @@ class QuoteDisplayer(Displayer):
 
         for key, value in dataclass_as_dict.items():    
             if key in Constants.default_display_data:
-                if key in ('next_dividend_date', 'earnings_report_date'):
+                if key in ('next_dividend_date', 'last_earnings_date'):
                     value = ( 
                         datetime.datetime.utcfromtimestamp(int(value)).strftime('%Y-%m-%d %H:%M:%S')
                         if value != "N/A"
