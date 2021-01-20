@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import annotations
+from argparse import ArgumentError
 import re
 import dataclasses
 from typing import Any, List
@@ -46,6 +47,25 @@ class TrendsDisplayer(Displayer):
         self.chart_three_months_url = reader.chart_three_months_url
         self.chart_one_month_url = reader.chart_one_month_url
         self.chart_five_days_url = reader.chart_five_days_url
+    
+    @staticmethod
+    def get_percentage_change(
+            start_value: int or float, end_value: int or float, num_decimal_places: int
+        ) -> float:
+        """
+        calculate the percentage change from the beginning and ending values of a series.
+
+        :param start_value -> ``int`` or ``float``: the starting value in the series.
+        :param end_value -> ``int`` or ``float``: the ending value in the series.
+
+        :returns result -> ``float``: the percentage change.
+        """
+        if not (isinstance(start_value, (int, float)) and isinstance(start_value, (int, float)) and isinstance(num_decimal_places, int)):
+            raise ArgumentError(None, message="start_value and end_value must be `int` or `float` type, and num_decimal_places must be `int`.")
+        else:
+            percent_chage_formula = ((end_value - start_value) / (start_value)) * 100
+            result = round(percent_chage_formula, num_decimal_places)
+            return result
 
     def build_historical_price_trends(self, instance_var_to_access: str) -> str:
         """
@@ -54,23 +74,8 @@ class TrendsDisplayer(Displayer):
 
         :param instance_var_to_access -> ``str``: a valid class instance variable to access.
 
-        :returns result -> ``str``: _TBD_
+        :returns result -> ``float``: the percentage change for a start and end value.
         """
-
-        def get_percentage_change(
-            start_value: int or float, end_value: int or float, num_decimal_places: 3
-        ) -> float:
-            """
-            calculate the percentage change from the beginning and ending values of a series.
-
-            :param start_value -> ``int`` or ``float``: the starting value in the series.
-            :param end_value -> ``int`` or ``float``: the ending value in the series.
-
-            :returns result -> ``float``: the percentage change.
-            """
-            percent_chage_formula = ((end_value - start_value) / (start_value)) * 100
-            result = round(percent_chage_formula, num_decimal_places)
-            return result
 
         attr_data = getattr(self, instance_var_to_access, None)
         if (attr_data) and (re.match(r"^(https|http)", attr_data)):
@@ -90,7 +95,7 @@ class TrendsDisplayer(Displayer):
 
             time_series_initial_open = daily_open_data[0]
             time_series_final_close = daily_close_data[-1]
-            return get_percentage_change(
+            return self.get_percentage_change(
                 time_series_initial_open, time_series_final_close, 3
             )
         else:
@@ -126,16 +131,13 @@ class TrendsDisplayer(Displayer):
 
         return result
 
-    def get_percentage_changes(self, *args):
+    def get_trends(self, *trends):
         """
-        get percentage changes for each provided arg in ``args``.
-
-        args:
-
+        get percentage changes for each provided arg in ``trends``.
         """
         price_trends = list()
-        for arg in args:
-            price_trends.append(self.build_historical_price_trends(arg))
+        for trend in trends:
+            price_trends.append(self.build_historical_price_trends(trend))
         return price_trends
 
     def display(self, percentage_change: float, timeframe_descriptor: str) -> None:
@@ -170,9 +172,9 @@ class QuoteDisplayer(Displayer):
         row_two = []
         padding_sizes = []
 
-        for key, value in dataclass_as_dict.items():
+        for key, value in dataclass_as_dict.items():    
             if key in Constants.default_display_data:
-                if key == 'next_dividend_date':
+                if key in ('next_dividend_date', 'earnings_report_date'):
                     value = ( 
                         datetime.datetime.utcfromtimestamp(int(value)).strftime('%Y-%m-%d %H:%M:%S')
                         if value != "N/A"
