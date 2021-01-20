@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 import argparse
+from equit_ease.datatypes import equity_meta
 from typing import List
 from PyInquirer import prompt
 import os, sys
@@ -26,6 +27,7 @@ __python_version__="3.9.0"
 # 2. Determine whether to include `help` value support for each optional argument.
 # 3. unit tests and once-over of code, make any stylistic changes!
 # 4. Complete documentation
+# 5. clearer current price when valid hours.
 
 # TODO: end
 
@@ -263,7 +265,7 @@ class ArgsHandler:
             "chart_six_months_url",
             "chart_three_months_url",
             "chart_one_month_url",
-            "chart_five_days_url",
+            "chart_five_days_url"
         ]
         (
             equity_one_year_percentage_change,
@@ -271,7 +273,7 @@ class ArgsHandler:
             equity_three_months_percentage_change,
             equity_one_month_percentage_change,
             equity_five_days_percentage_change,
-        ) = trends_displayer.get_percentage_changes(*trends_to_retrieve)
+        ) = trends_displayer.get_trends(*trends_to_retrieve)
 
         for row in table:
             print(row)
@@ -285,6 +287,11 @@ class ArgsHandler:
             equity_three_months_percentage_change, "3 months")
         trends_displayer.display(equity_one_month_percentage_change, "1 month")
         trends_displayer.display(equity_five_days_percentage_change, "1 week")
+        trends_displayer.display(
+            trends_displayer.get_percentage_change(
+                int(quote_data.close), int(quote_data.price), 2
+            ), "1 day"
+        )
     
     def handle_list(self: ArgsHandler, files_contents: List[str]):
         # TODO: handle list arg
