@@ -32,7 +32,7 @@ class EquityMeta:
     # forward PE is current share price / EPS estimation over next 12 months
 
     trailing_eps: float  # earnings generated over previous year
-    next_earnings_date: int  # unix epoch time
+    last_earnings_date: int  # unix epoch time
     dividend_rate: float  # annual amount of cash returned to shareholders as a % of a companys share price (market value)
     dividend_yield: float  # amount a company pays shareholders divided by its current stock price
     next_dividend_date: int  # unix epoch time

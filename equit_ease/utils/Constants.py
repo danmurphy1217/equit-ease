@@ -58,7 +58,7 @@ class Constants:
         "trailing_pe": "trailingPE",
         "forward_pe": "forwardPE",
         "trailing_eps": "epsTrailingTwelveMonths",
-        "next_earnings_date": "earningsTimestamp",
+        "last_earnings_date": "earningsTimestamp",
         "dividend_rate": "trailingAnnualDividendRate",
         "dividend_yield": "trailingAnnualDividendYield",
         "next_dividend_date": "dividendDate",
@@ -73,5 +73,5 @@ class Constants:
         "market_volume",
         "market_cap",
         "next_dividend_date",
-        "next_earnings_date"
+        "last_earnings_date"
     ]
