@@ -17,6 +17,17 @@ from equit_ease.displayer.display import QuoteDisplayer, TrendsDisplayer
 __equity_version__="0.0.4"
 __python_version__="3.9.0"
 
+# TODO: start 
+
+# Next steps -- 
+
+# 1. Refactor handle_* methods. `handle_list` and `handle_update` are both similar enough to be refactored into one root method with some helpers.
+        # similar to how handle_force is local-scope for handle_equity, I can write a method or two for handling handle_update with and without a list_name
+# 2. Determine whether to include `help` value support for each optional argument.
+# 3. unit tests and once-over of code, make any stylistic changes!
+# 4. Complete documentation
+
+# TODO: end
 
 def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     """
@@ -301,7 +312,6 @@ class ArgsHandler:
                 new_args_handler.handle_equity()
     
     def handle_update(self: ArgsHandler, file_contents: List[str], lists_file_path: Path):
-        # TODO: handle update arg
         equity_name = self.args_data.update
         user_config = UserConfigParser(equity_name, file_contents)
         list_of_equity_names, _ = user_config.format_equity_lists()
@@ -366,7 +376,7 @@ class ArgsHandler:
                 f.writelines(file_lines)
 
 def run():
-
+    """main function that is executed when a command is triggered."""
     base_parser = argparse.ArgumentParser(
         description="The easiest way to access data about your favorite stocks from the command line.",
         formatter_class=argparse.RawTextHelpFormatter,
