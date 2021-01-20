@@ -278,13 +278,13 @@ class ArgsHandler:
 
 def run():
 
-    parser = argparse.ArgumentParser(
+    base_parser = argparse.ArgumentParser(
         description="The easiest way to access data about your favorite stocks from the command line.",
         formatter_class=argparse.RawTextHelpFormatter,
         # FIXME: decide what to do with default help... Do I want to handle that internally?
         # add_help=False
     )
-    parser = init_parser(parser=parser)
+    parser = init_parser(parser=base_parser)
     args = parser.parse_args()
     args_handler = ArgsHandler(args)
 
@@ -367,7 +367,7 @@ def run():
 
             with open(lists_file_path, "r") as f:
                 file_lines = f.readlines()
-                print(file_lines)
+
                 i = file_lines.index(f"[{user_config.list_name}]\n")
                 file_lines[i+1] = f"equity_names = {updated_equity_list}\n"
             
