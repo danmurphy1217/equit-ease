@@ -274,7 +274,34 @@ class ArgsHandler:
             equity_three_months_percentage_change, "3 months")
         trends_displayer.display(equity_one_month_percentage_change, "1 month")
         trends_displayer.display(equity_five_days_percentage_change, "1 week")
+    
+    def handle_list(self: ArgsHandler, files_contents: List[str]):
+        # TODO: handle list arg
+        equity_list_name = self.args_data.list
+        user_config = UserConfigParser(
+            equity_list_name, files_contents)
+        (
+            list_of_formatted_list_names,
+            string_of_all_formatted_list_names,
+        ) = user_config.format_equity_lists()
 
+        if equity_list_name not in list_of_formatted_list_names:
+            extra_info = f"Try: {string_of_all_formatted_list_names}" if len(string_of_all_formatted_list_names) != 0 else "No lists are configured. Run ``equity config`` to get started!"
+            raise argparse.ArgumentError(
+                None, message=f"'{equity_list_name}' does not exist. {extra_info}"
+            )
+        else:
+            equities_to_search = user_config.find_match()
+
+            for equity in equities_to_search:
+                new_args_handler = ArgsHandler(
+                    argparse.Namespace(name=equity, force="True")
+                )
+                new_args_handler.handle_equity()
+    
+    def handle_update():
+        # TODO: handle update arg
+        return
 
 def run():
 
@@ -312,27 +339,7 @@ def run():
             with open(lists_file_path, "r") as f:
                 file_contents_lines = f.read().splitlines()
 
-            equity_list_name = args.list
-            user_config = UserConfigParser(
-                equity_list_name, file_contents_lines)
-            (
-                list_of_formatted_list_names,
-                string_of_all_formatted_list_names,
-            ) = user_config.format_equity_lists()
-
-            if equity_list_name not in list_of_formatted_list_names:
-                extra_info = f"Try: {string_of_all_formatted_list_names}" if len(string_of_all_formatted_list_names) != 0 else "No lists are configured. Run ``equity config`` to get started!"
-                raise argparse.ArgumentError(
-                    None, message=f"'{equity_list_name}' does not exist. {extra_info}"
-                )
-            else:
-                equities_to_search = user_config.find_match()
-
-                for equity in equities_to_search:
-                    new_args_handler = ArgsHandler(
-                        argparse.Namespace(name=equity, force="True")
-                    )
-                    new_args_handler.handle_equity()
+            args_handler.handle_list(file_contents_lines)
 
     elif args.update:
         with open(lists_file_path, "r") as f:
