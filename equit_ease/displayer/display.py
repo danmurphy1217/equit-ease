@@ -127,7 +127,7 @@ class TrendsDisplayer(Displayer):
         elif equity_percent_change < 0:
             result = "⬇ (down)"
         else:
-            result = "⟷ (unchanged)"
+            result = "-- (unchanged)"
 
         return result
 
