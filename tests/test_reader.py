@@ -205,7 +205,7 @@ class TestReaderMethods(unittest.TestCase):
         """
         test case #2 for the `ticker` property.
 
-        Expected behavior: see previous test.
+        Expected behavior: see test case #1.
 
         This test checks to see if the `ticker` property is correctly
         updated post-__init__.
@@ -223,4 +223,18 @@ class TestReaderMethods(unittest.TestCase):
             reader_one.ticker == reader_two.ticker
         )
     
-    
+    def test_name_getter(self):
+        """
+        test case #1 for the `name` property.
+
+        Expected behavior: Similar to the `ticker` property, the "long name"
+        of a stock is mapped to this property during instantiation. These two
+        properties are key to the functionality of the reverse lookup. They support
+        both getting & setting.
+        """
+        reader_one = self.reader_co
+        reader_two = self.reader_tick
+
+        self.assertTrue(
+            (reader_two.name.lower() == "salesforce.com, inc.") & (reader_one.name.lower() == "apple inc.")
+            )
