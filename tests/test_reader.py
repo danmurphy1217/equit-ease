@@ -1,5 +1,6 @@
 import unittest
 from requests.exceptions import HTTPError
+import re
 
 from equit_ease.reader.read import Reader
 from equit_ease.utils.Constants import Constants
@@ -44,13 +45,19 @@ class TestReaderMethods(unittest.TestCase):
 
     def test_build_equity_chart_url_pass(self):
         """test case #1 for build_equity_chart_url() in reader/read.py -> pass"""
-
         reader = self.reader_co
 
         full_url_one = Constants.yahoo_finance_base_chart_url + reader.ticker
         # builds the URL and sets it as a class instance(!!!) attribute
         _ = reader.build_equity_chart_url()
         self.assertEqual(reader.chart_base_url, full_url_one)
+        
+        extract_range = lambda url : re.search("range=(.*)", url)
+        self.assertTrue(extract_range(reader.chart_one_year_url).group(1) == "1y")
+        self.assertTrue(extract_range(reader.chart_six_months_url).group(1) == "6mo")
+        self.assertTrue(extract_range(reader.chart_three_months_url).group(1) == "3mo")
+        self.assertTrue(extract_range(reader.chart_one_month_url).group(1) == "1mo")
+        self.assertTrue(extract_range(reader.chart_five_days_url).group(1) == "5d")
 
     def test_build_chart_url_fail(self):
         """test case #2 for build_equity_url_for() in reader/read.py -> throw error"""
@@ -236,5 +243,36 @@ class TestReaderMethods(unittest.TestCase):
         reader_two = self.reader_tick
 
         self.assertTrue(
-            (reader_two.name.lower() == "salesforce.com, inc.") & (reader_one.name.lower() == "apple inc.")
+            (reader_two.name.lower() == "salesforce.com, inc.") & 
+            (reader_one.name.lower() == "apple inc.")
             )
+    
+    def test_name_setter(self):
+        """
+        test case #2 for the `name` property.
+
+        Expected behavior: See test case #1.
+
+        This test checks to see that the `name` property is correctly
+        updated post-__init__.
+        """
+        reader_apple = self.reader_co
+        reader_salesforce = self.reader_tick
+        new_name_apple = "Apple!"
+        new_name_salesforce = "Salesforce!"
+        
+        init_name_apple = reader_apple.name
+        init_name_salesforce = reader_apple.name
+        reader_apple.name = new_name_apple
+        reader_salesforce.name = new_name_salesforce
+        
+        self.assertTrue(
+            (reader_apple.name != init_name_apple) &
+            (reader_apple.name == new_name_apple)
+            )
+
+        self.assertTrue(
+            (reader_salesforce.name != init_name_salesforce) &
+            (reader_salesforce.name == new_name_salesforce)
+        )
+
