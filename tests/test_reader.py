@@ -5,6 +5,7 @@ import re
 from equit_ease.reader.read import Reader
 from equit_ease.utils.Constants import Constants
 
+__status__ = "up-to-date"
 
 class TestReaderMethods(unittest.TestCase):
     # test the methods defined for the Reader class.
