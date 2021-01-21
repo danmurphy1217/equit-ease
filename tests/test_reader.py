@@ -179,3 +179,48 @@ class TestReaderMethods(unittest.TestCase):
 
         self.assertTrue(company_equity_data_two[0] == reader_two.name)
         self.assertTrue(company_equity_data_two[1] == reader_two.ticker)
+    
+    def test_ticker_getter(self):
+        """
+        test case #1 for the `ticker` property.
+
+        Expected behavior: `ticker` is implemented as a property in reader/read.py
+        and has a getter and setter method. The getter method returns the value assigned 
+        to ticker and the setter updates/sets the value.
+
+        This test checks to see what the value of the ticker property is post-__init__.
+        """
+        reader_one = self.reader_co
+        reader_two = self.reader_tick
+        
+
+        self.assertTrue(
+            reader_one.ticker != self.company_name if self.company_name != 'AAPL' else reader_one.ticker == self.company_name
+            )
+        
+        self.assertTrue(
+            reader_two.ticker == self.ticker_name # shouldn't change!
+        )
+    def test_ticker_setter(self):
+        """
+        test case #2 for the `ticker` property.
+
+        Expected behavior: see previous test.
+
+        This test checks to see if the `ticker` property is correctly
+        updated post-__init__.
+        """
+        reader_one = self.reader_co
+        reader_two = self.reader_tick
+
+        self.assertTrue(
+            reader_one.ticker == "AAPL" and reader_two.ticker == self.ticker_name
+        )
+        
+        reader_one.ticker = reader_two.ticker = "TSLA"
+
+        self.assertTrue(
+            reader_one.ticker == reader_two.ticker
+        )
+    
+    
