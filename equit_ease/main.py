@@ -6,13 +6,14 @@ import argparse
 from equit_ease.datatypes import equity_meta
 from typing import List
 from PyInquirer import prompt
-import os, sys
+import os, sys, signal
 from pathlib import Path
 
 import PyInquirer
 from equit_ease.reader.read import Reader
 from equit_ease.parser.parse import QuoteParser, UserConfigParser
 from equit_ease.displayer.display import QuoteDisplayer, TrendsDisplayer
+from equit_ease.utils.decorators import verify
 
 
 __equity_version__="0.0.4"
@@ -22,8 +23,6 @@ __python_version__="3.9.0"
 
 # Next steps -- 
 
-# 1. Refactor handle_* methods. `handle_list` and `handle_update` are both similar enough to be refactored into one root method with some helpers.
-        # similar to how handle_force is local-scope for handle_equity, I can write a method or two for handling handle_update with and without a list_name
 # 3. unit tests and once-over of code, make any stylistic changes!
 # 4. Complete documentation
 # 5. fixme in parse.py for removing synchronous calls and replacing them with 
@@ -32,12 +31,17 @@ __python_version__="3.9.0"
 
 def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     """
-    instantiate the parser object with the necessary arguments.
+    instantiate the parser object with the necessary arguments. Additionally, 
 
     :param parser -> ``argparse.ArgumentParser``: a parser object with no arguments added.
 
     :returns parser -> ``argparse.ArgumentParser``: a parser object containing the needed arguments.
     """
+    def control_c_handler(*args):
+        sys.stdout.write("\nOperations Cancelled By User\n")
+        sys.exit(0)
+    signal.signal(signal.SIGINT, control_c_handler)
+
     parser.add_argument(
         "config",
         type=str,
@@ -170,17 +174,23 @@ class ArgsHandler:
 
         :returns ``None``:
         """
-        questions = [
-            {"type": "input", "name": "list_name", "message": "List Name:"},
-            {
-                "type": "input",
-                "name": "equities_in_list",
-                "message": "Equities to include in list:",
-            },
-        ]
-        equities_for_list = prompt(questions, style=None)
 
-        user_home_dir = os.environ.get("HOME")
+        @verify
+        def display_config():      
+            questions = [
+                {"type": "input", "name": "list_name", "message": "List Name:"},
+                {
+                    "type": "input",
+                    "name": "equities_in_list",
+                    "message": "Equities to include in list:",
+                },
+            ]
+            equities_for_list = prompt(questions, style=None)
+            return equities_for_list
+        
+        equities_for_list = display_config()
+
+        user_home_dir = str(Path.home()) # same as os.path.expanduser(~)
         equit_ease_dir_path = os.path.join(user_home_dir, ".equit_ease")
         os_agnostic_path = Path(equit_ease_dir_path)
         config_file_path = Path(os.path.join(equit_ease_dir_path, "lists"))
@@ -226,7 +236,8 @@ class ArgsHandler:
                         "choices": choices,
                     }
                 ]
-                equity_name = prompt(questions, style=None)["Equity_Name"]
+                equity_name = prompt(questions, style=None).get("Equity_Name", None)
+
                 # update equity name based off selection, build new URL, and repeat process
                 reader.equity = equity_name
                 reader.build_company_lookup_url()
@@ -316,7 +327,9 @@ class ArgsHandler:
                 )
                 new_args_handler.handle_equity()
     
-    def handle_update(self: ArgsHandler, file_contents: List[str], lists_file_path: Path):
+    def handle_update(self: ArgsHandler, file_contents: List[str], lists_file_path: Path) -> None:
+        
+        @verify
         def display_lists(equity_list_names: List[str]) -> str:
             """
             locally scoped function utilized to display all user-configured lists.
@@ -332,10 +345,12 @@ class ArgsHandler:
                         "choices": equity_list_names,
                     }
                 ]
-            result = prompt(user_input, style=None)['Selected_List']
+            result = prompt(user_input, style=None).get('Selected_List', None)
+
             return result
 
-        def display_equities_in_list(equities: List[str]):
+        @verify
+        def display_equities_in_list(equities: List[str]) -> str:
             """
             locally scoped function utilized to display the ticker symbols that belong to a user-configured list.
 
@@ -350,8 +365,9 @@ class ArgsHandler:
                         "default": ",".join(equities)
                     }
                 ]
-            updated_equity_list = prompt(user_input, style=None)['Updated_Equities']
-            return updated_equity_list
+            result = prompt(user_input, style=None).get('Selected_List', None)
+
+            return result
         
         def write_to_file(file_lines: List[str]) -> None:
             """
@@ -385,9 +401,9 @@ class ArgsHandler:
         if equity_list_name == "*":
             # no input provided
             user_config.list_name = display_lists(equity_list_names)
-            user_config.equities = user_config.find_match()
+
             
-            updated_equity_list = display_equities_in_list(user_config.equities)
+            updated_equity_list = display_equities_in_list(user_config.find_match())
             user_config.equities = ",".join(self.cleaner(updated_equity_list.split(",")))
             
             updated_file_lines = update_file()
