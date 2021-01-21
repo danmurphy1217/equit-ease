@@ -171,7 +171,6 @@ class Reader:
         one_month_url = build_url(one_month_params)
         five_days_url = build_url(five_day_params)
 
-        # TODO: this will be more robust based off args that can be passed via command-line
         result = base_chart_url + self.__ticker
 
         self.chart_base_url = result
@@ -272,7 +271,10 @@ class Reader:
         :param self -> ``Reader``:
         :returns result -> ``Dict[str, Any]``: Dict containing short name and ticker symbol data.
         """
+        # FIXME: change functionality to handle API calls in batch as opposed to synchronously.
+        # might want to add some async calls.
         json_response = self._get(self.company_url)
+        # print(json_response)
 
         def extract_longname(data):
             """extract 'longname' from JSON object."""
