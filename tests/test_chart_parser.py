@@ -146,6 +146,7 @@ class TestChartParserMethods(unittest.TestCase):
         """
         test_data_one = [None, None, None, None]
         test_data_two = [0, 0, 0, 0]
+        test_data_three = ["0", "0", "0", "0"]
 
         
         with self.assertRaises(ZeroDivisionError):
@@ -156,3 +157,8 @@ class TestChartParserMethods(unittest.TestCase):
             self.parser.standardize(test_data_two),
             test_data_two
         )
+
+        with self.assertRaises(TypeError):
+            self.parser.standardize(test_data_three)
+    
+    
