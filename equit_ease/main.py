@@ -214,7 +214,28 @@ class ArgsHandler:
 
         :param self -> ``Reader``:
         """
+        @verify
+        def display_equity_options():
+            """
+            helper function that displays the options matching
+            the equity value passed to --name | -n.
+            """
+            long_name, ticker, choices = reader.get_equity_company_data(
+                    force=self.args_data.force
+            )
+            questions = [
+                    {
+                        "type": "list",
+                        "name": "Equity_Name",
+                        "message": "Select The Correct Equity:",
+                        "choices": choices,
+                    }
+                ]
+            equity_name = prompt(questions, style=None).get("Equity_Name", None)
+     
+            return equity_name
 
+        @verify
         def handle_force():
             """
             used to handle the ``--force`` / ``-f`` flags. If the flag is set
@@ -225,18 +246,8 @@ class ArgsHandler:
             :param use_force -> ``bool``: if False, render the propmt. Otherwise, utilize first ticker.
             """
             if self.args_data.force == "False":
-                long_name, ticker, choices = reader.get_equity_company_data(
-                    force=self.args_data.force
-                )
-                questions = [
-                    {
-                        "type": "list",
-                        "name": "Equity_Name",
-                        "message": "Select The Correct Equity:",
-                        "choices": choices,
-                    }
-                ]
-                equity_name = prompt(questions, style=None).get("Equity_Name", None)
+
+                equity_name = display_equity_options()
 
                 # update equity name based off selection, build new URL, and repeat process
                 reader.equity = equity_name
