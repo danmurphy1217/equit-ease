@@ -93,7 +93,7 @@ class ChartParser(Parser):
     #!TODO: Neither of these are necessary...
 
     @staticmethod
-    def standardize(item_to_standardize: List[float | None]) -> List[float]:
+    def standardize(item_to_standardize: List[float or int or None]) -> List[float or int]:
         """
         retrieves the mean of the items in the list (after removing none types),
         then replaces none types with the mean
