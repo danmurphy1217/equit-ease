@@ -1,4 +1,5 @@
 import json
+from logging import ERROR
 import os
 
 from equit_ease.parser.parse import ChartParser
@@ -50,3 +51,108 @@ class TestChartParserMethods(unittest.TestCase):
             self.assertNotEqual(filtered_chart_data, chart_data[i])
             # data is standardized
             self.assertEqual(self.parser.standardize(filtered_chart_data), chart_data[i])
+    
+    def test_extract_equity_chart_data_length(self):
+        """
+        test extract_equity_chart_data() #2 -> pass.
+
+        check that the length of all values returned from 
+        extract_equity_chart_data() are equal.
+
+        This test is more concerned with confirming a key
+        assumption underlying the application: the length of
+        open, close, bid, ask, etc... should all be the same.
+        """
+        keys = (
+            "low",
+            "high",
+            "open",
+            "close",
+            "volume"
+        )
+
+        responses = dict()
+
+        for key in keys:
+            filtered_chart_data = self.data_fixture["chart"]["result"][0]["indicators"]["quote"][0][key]
+
+            responses[key] = filtered_chart_data
+        
+        self.assertTrue(
+            len(responses["low"]) == \
+                len(responses["high"]) == \
+                    len(responses["open"]) == \
+                        len(responses["close"]) == \
+                            len(responses["volume"])
+        )
+    
+    def test_extract_equity_chart_data_errant(self):
+        """
+        test case #3 for extract_equity_chart_data() with errant fixture -> pass. 
+
+        Using the chart-errant.json fixture, test the functionality
+        given unequal list lengths for the 'low', 'high', ..., etc.
+
+        No error should be raised.
+        """
+        keys = (
+            "low",
+            "high",
+            "open",
+            "close",
+            "volume"
+        )
+
+        responses = dict()
+
+        for key in keys:
+            filtered_chart_data = self.errant_data_fixture["chart"]["result"][0]["indicators"]["quote"][0][key]
+
+            responses[key] = filtered_chart_data
+        
+        self.assertFalse(
+            len(responses["low"]) == \
+                len(responses["high"]) == \
+                    len(responses["open"]) == \
+                        len(responses["close"]) == \
+                            len(responses["volume"])
+        )
+
+    
+    def test_standardize_pass(self):
+        """
+        test case #1 for standardize() -> pass.
+
+        Appropriate params are passed to the function,
+        resulting in expected results.
+        """
+        test_data = [0, None, 0, 1, 2]
+        average = sum([item for item in test_data if item != None])/len([item for item in test_data if item != None])
+        clean_test_data = [0, average, 0, 1, 2]
+        
+        standardized_data = self.parser.standardize(test_data)
+        index_of_average = standardized_data.index(average)
+        
+        self.assertEqual(standardized_data, clean_test_data)
+
+        self.assertEqual(index_of_average, 1)
+    
+    def test_standardize_fail(self):
+        """
+        test case #2 for standardize() -> fail.
+
+        Params that cause errors are passed, resulting in
+        ``Error``
+        """
+        test_data_one = [None, None, None, None]
+        test_data_two = [0, 0, 0, 0]
+
+        
+        with self.assertRaises(ZeroDivisionError):
+            self.parser.standardize(test_data_one)
+        
+        # should be unchanged
+        self.assertEqual(
+            self.parser.standardize(test_data_two),
+            test_data_two
+        )
