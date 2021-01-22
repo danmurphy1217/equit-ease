@@ -235,7 +235,6 @@ class ArgsHandler:
      
             return equity_name
 
-        @verify
         def handle_force():
             """
             used to handle the ``--force`` / ``-f`` flags. If the flag is set
