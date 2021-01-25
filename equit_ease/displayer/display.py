@@ -60,11 +60,17 @@ class TrendsDisplayer(Displayer):
 
         :returns result -> ``float``: the percentage change.
         """
-        if not (isinstance(start_value, (int, float)) and isinstance(start_value, (int, float)) and isinstance(num_decimal_places, int)):
+        if not (isinstance(start_value, (int, float)) and \
+            isinstance(start_value, (int, float)) and \
+            isinstance(num_decimal_places, int)
+        ):
             raise ArgumentError(None, message="start_value and end_value must be `int` or `float` type, and num_decimal_places must be `int`.")
         else:
-            percent_chage_formula = ((end_value - start_value) / (start_value)) * 100
-            result = round(percent_chage_formula, num_decimal_places)
+            if start_value == 0:
+                result = 0.0
+            else:
+                percent_chage_formula = ((end_value - start_value) / (start_value)) * 100
+                result = round(percent_chage_formula, num_decimal_places)
             return result
 
     def build_historical_price_trends(self, instance_var_to_access: str) -> str:
