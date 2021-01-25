@@ -13,11 +13,10 @@ class EquityMeta:
     about a stock (bid, ask, open, close, etc...) in the terminal.
     """
 
+    price: float # current price (if market is operating)
+    intra_day_range: Tuple[float, float]  # low - high price for the stock [intra-day]
     close: float  # previous days closing stock price
     open: float  # stock price at open
-    bid: float  # highest price a buyer will pay
-    ask: float  # lowest price a seller will accept
-    intra_day_range: Tuple[float, float]  # low - high price for the stock [intra-day]
     fifty_two_wk_range: Tuple[
         float, float
     ]  # low - high price for the stock [last year]
@@ -33,12 +32,13 @@ class EquityMeta:
     # forward PE is current share price / EPS estimation over next 12 months
 
     trailing_eps: float  # earnings generated over previous year
-    earnings_report_date: int  # unix epoch time
+    last_earnings_date: int  # unix epoch time
     dividend_rate: float  # annual amount of cash returned to shareholders as a % of a companys share price (market value)
     dividend_yield: float  # amount a company pays shareholders divided by its current stock price
     next_dividend_date: int  # unix epoch time
 
-    # TODO: beta
+    # bid: float  # highest price a buyer will pay
+    # ask: float  # lowest price a seller will accept
 
     def __post_init__(self):
         self.volume_stats = {

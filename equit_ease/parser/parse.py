@@ -197,11 +197,11 @@ class UserConfigParser(Reader):
 
     def find_match(self: UserConfigParser) -> None:
         """
-        iterate over equity list names and find a match. Then, if a match is found,
+        iterate over equity list names and search for a match. Then, if a match is found,
         retrieve the equities associated with that list and retrieve data for them.
 
         :param self -> ``UserConfigParser``:
-        :returns ``??``:
+        :returns result -> ``List[str]``: a list of the equities associated with `self.list_name`
         """
         is_match = lambda line: re.search(rf"^\[{self.list_name}\]", line)
 
@@ -212,8 +212,8 @@ class UserConfigParser(Reader):
                     equity_names_to_search_unformatted.split(" = ")[-1]
                 )
                 split_names = lambda name: name.split(",")
-                equities_to_search = split_names(equity_names_to_search_formatted)
-                return equities_to_search
+                result = split_names(equity_names_to_search_formatted)
+                return result
 
             else:
                 # otherwise, continue to next line

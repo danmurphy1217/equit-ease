@@ -20,8 +20,6 @@ class Constants:
     yahoo_finance_quote_keys = [
         "regularMarketPreviousClose",
         "regularMarketOpen",
-        "bid",
-        "ask",
         "regularMarketDayRange",
         "fiftyTwoWeekRange",
         "regularMarketVolume",
@@ -35,6 +33,7 @@ class Constants:
         "trailingAnnualDividendRate",
         "trailingAnnualDividendYield",
         "dividendDate",
+        "regularMarketPrice"
     ]
 
     dispatcher = {
@@ -50,8 +49,6 @@ class Constants:
     yahoo_finance_column_mappings = {
         "close": "regularMarketPreviousClose",
         "open": "regularMarketOpen",
-        "bid": "bid",
-        "ask": "ask",
         "intra_day_range": "regularMarketDayRange",
         "fifty_two_wk_range": "fiftyTwoWeekRange",
         "market_volume": "regularMarketVolume",
@@ -61,19 +58,20 @@ class Constants:
         "trailing_pe": "trailingPE",
         "forward_pe": "forwardPE",
         "trailing_eps": "epsTrailingTwelveMonths",
-        "earnings_report_date": "earningsTimestamp",
+        "last_earnings_date": "earningsTimestamp",
         "dividend_rate": "trailingAnnualDividendRate",
         "dividend_yield": "trailingAnnualDividendYield",
         "next_dividend_date": "dividendDate",
+        "price": "regularMarketPrice"
     }
 
     default_display_data = [
+        "price",
         "close",
         "open",
-        "bid",
-        "ask",
         "intra_day_range",
         "market_volume",
         "market_cap",
         "next_dividend_date",
+        "last_earnings_date"
     ]
