@@ -67,6 +67,8 @@ def init_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "--list",
         "-l",
         type=str,
+        const="*",
+        nargs="?",
         help="""must be a valid list that was configured with ``equity config``. If an invalid list is provided,\na ``argparse.ArgumentError`` is thrown. EXAMPLE:\n>>> equity --list 'My First List'\n[CRM result]\n[AAPL result]\n[MSFT result]\n\n>>> equity --list 'Invalid List Name'\nargparse.ArgumentError: 'Invalid List Name' does not exist. Try: My First List.\n\n"""
     )
 
@@ -314,18 +316,24 @@ class ArgsHandler:
     
     def handle_list(self: ArgsHandler, files_contents: List[str]):
         equity_list_name = self.args_data.list
-        user_config = UserConfigParser(
-            equity_list_name, files_contents
-        )
+        
+        user_config = UserConfigParser(equity_list_name, files_contents)
+        (
+            equity_list_names,
+            string_of_all_formatted_list_names ) = user_config.format_equity_lists()
+
+        if equity_list_name == "*":
+            user_config.list_name = self.display_lists(equity_list_names)
+
         (
             list_of_formatted_list_names,
             string_of_all_formatted_list_names,
         ) = user_config.format_equity_lists()
 
-        if not self.is_valid_name(equity_list_name, list_of_formatted_list_names):
+        if not self.is_valid_name(user_config.list_name, list_of_formatted_list_names):
             extra_info = f"Try: {string_of_all_formatted_list_names}" if len(string_of_all_formatted_list_names) != 0 else "No lists are configured. Run ``equity config`` to get started!"
             raise argparse.ArgumentError(
-                None, message=f"'{equity_list_name}' does not exist. {extra_info}"
+                None, message=f"'{user_config.list_name}' does not exist. {extra_info}"
             )
         else:
             equities_to_search = user_config.find_match()
@@ -336,28 +344,28 @@ class ArgsHandler:
                     argparse.Namespace(name=equity, force="True")
                 )
                 new_args_handler.handle_equity()
+
+    @verify
+    def display_lists(self: ArgsHandler, equity_list_names: List[str]) -> str:
+        """
+        utilized to display all user-configured lists.
+
+        :params equity_list_names -> ``List[str]``: all user configured list names.
+        :returns result -> ``str``: the list selected by the user.
+        """
+        user_input = [
+                {
+                    "type": "list",
+                    "name": "Selected_List",
+                    "message": "Select Which List to Edit:",
+                    "choices": equity_list_names,
+                }
+            ]
+        result = prompt(user_input, style=None).get('Selected_List', None)
+
+        return result
     
     def handle_update(self: ArgsHandler, file_contents: List[str], lists_file_path: Path) -> None:
-        
-        @verify
-        def display_lists(equity_list_names: List[str]) -> str:
-            """
-            locally scoped function utilized to display all user-configured lists.
-
-            :params equity_list_names -> ``List[str]``: all user configured list names.
-            :returns result -> ``str``: the list selected by the user.
-            """
-            user_input = [
-                    {
-                        "type": "list",
-                        "name": "Selected_List",
-                        "message": "Select Which List to Edit:",
-                        "choices": equity_list_names,
-                    }
-                ]
-            result = prompt(user_input, style=None).get('Selected_List', None)
-
-            return result
 
         @verify
         def display_equities_in_list(equities: List[str]) -> str:
@@ -410,7 +418,7 @@ class ArgsHandler:
 
         if equity_list_name == "*":
             # no input provided
-            user_config.list_name = display_lists(equity_list_names)
+            user_config.list_name = self.display_lists(equity_list_names)
 
             
             updated_equity_list = display_equities_in_list(user_config.find_match())
