@@ -105,9 +105,9 @@ class ArgsHandler:
                     name.strip() for name in equity_names_list
                 ]
 
-    @staticmethod
+
     def _setup_dir_structure(
-        dir_path: Path, list_file_path: Path, answers: PyInquirer.prompt
+        self, dir_path: Path, list_file_path: Path, answers: PyInquirer.prompt
     ) -> bool:
         """
         make .equit_ease folder in $HOME dir.
