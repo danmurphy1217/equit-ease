@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 import dataclasses
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 import re
 
 from equit_ease.reader.read import Reader
@@ -163,7 +163,7 @@ class UserConfigParser(Reader):
         return self._equities
     
     @equities.setter
-    def equities(self: UserConfigParser, equities):
+    def equities(self: UserConfigParser, equities) -> None:
         """`SETTER` for setting the equities assigned to a user-configured list."""
         self._equities = equities
     
@@ -173,12 +173,12 @@ class UserConfigParser(Reader):
         return self._list_name
     
     @list_name.setter
-    def list_name(self: UserConfigParser, list_name: str):
+    def list_name(self: UserConfigParser, list_name: str) -> None:
         """`SETTER` for setting the name of the selected list."""
         self._list_name = list_name
 
 
-    def format_equity_lists(self: UserConfigParser):
+    def format_equity_lists(self: UserConfigParser) -> Tuple[list, str]:
         """
         search the lists file located in $HOME/.equit_ease/lists, gather a data
         struct of all stock list names, and format these names.
