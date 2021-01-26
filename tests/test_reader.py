@@ -1,9 +1,11 @@
 import unittest
 from requests.exceptions import HTTPError
+import re
 
 from equit_ease.reader.read import Reader
 from equit_ease.utils.Constants import Constants
 
+__status__ = "up-to-date"
 
 class TestReaderMethods(unittest.TestCase):
     # test the methods defined for the Reader class.
@@ -44,13 +46,19 @@ class TestReaderMethods(unittest.TestCase):
 
     def test_build_equity_chart_url_pass(self):
         """test case #1 for build_equity_chart_url() in reader/read.py -> pass"""
-
         reader = self.reader_co
 
         full_url_one = Constants.yahoo_finance_base_chart_url + reader.ticker
         # builds the URL and sets it as a class instance(!!!) attribute
         _ = reader.build_equity_chart_url()
         self.assertEqual(reader.chart_base_url, full_url_one)
+        
+        extract_range = lambda url : re.search("range=(.*)", url)
+        self.assertTrue(extract_range(reader.chart_one_year_url).group(1) == "1y")
+        self.assertTrue(extract_range(reader.chart_six_months_url).group(1) == "6mo")
+        self.assertTrue(extract_range(reader.chart_three_months_url).group(1) == "3mo")
+        self.assertTrue(extract_range(reader.chart_one_month_url).group(1) == "1mo")
+        self.assertTrue(extract_range(reader.chart_five_days_url).group(1) == "5d")
 
     def test_build_chart_url_fail(self):
         """test case #2 for build_equity_url_for() in reader/read.py -> throw error"""
@@ -179,3 +187,93 @@ class TestReaderMethods(unittest.TestCase):
 
         self.assertTrue(company_equity_data_two[0] == reader_two.name)
         self.assertTrue(company_equity_data_two[1] == reader_two.ticker)
+    
+    def test_ticker_getter(self):
+        """
+        test case #1 for the `ticker` property.
+
+        Expected behavior: `ticker` is implemented as a property in reader/read.py
+        and has a getter and setter method. The getter method returns the value assigned 
+        to ticker and the setter updates/sets the value.
+
+        This test checks to see what the value of the ticker property is post-__init__.
+        """
+        reader_one = self.reader_co
+        reader_two = self.reader_tick
+        
+
+        self.assertTrue(
+            reader_one.ticker != self.company_name if self.company_name != 'AAPL' else reader_one.ticker == self.company_name
+            )
+        
+        self.assertTrue(
+            reader_two.ticker == self.ticker_name # shouldn't change!
+        )
+    def test_ticker_setter(self):
+        """
+        test case #2 for the `ticker` property.
+
+        Expected behavior: see test case #1.
+
+        This test checks to see if the `ticker` property is correctly
+        updated post-__init__.
+        """
+        reader_one = self.reader_co
+        reader_two = self.reader_tick
+
+        self.assertTrue(
+            reader_one.ticker == "AAPL" and reader_two.ticker == self.ticker_name
+        )
+        
+        reader_one.ticker = reader_two.ticker = "TSLA"
+
+        self.assertTrue(
+            reader_one.ticker == reader_two.ticker
+        )
+    
+    def test_name_getter(self):
+        """
+        test case #1 for the `name` property.
+
+        Expected behavior: Similar to the `ticker` property, the "long name"
+        of a stock is mapped to this property during instantiation. These two
+        properties are key to the functionality of the reverse lookup. They support
+        both getting & setting.
+        """
+        reader_one = self.reader_co
+        reader_two = self.reader_tick
+
+        self.assertTrue(
+            (reader_two.name.lower() == "salesforce.com, inc.") & 
+            (reader_one.name.lower() == "apple inc.")
+            )
+    
+    def test_name_setter(self):
+        """
+        test case #2 for the `name` property.
+
+        Expected behavior: See test case #1.
+
+        This test checks to see that the `name` property is correctly
+        updated post-__init__.
+        """
+        reader_apple = self.reader_co
+        reader_salesforce = self.reader_tick
+        new_name_apple = "Apple!"
+        new_name_salesforce = "Salesforce!"
+        
+        init_name_apple = reader_apple.name
+        init_name_salesforce = reader_apple.name
+        reader_apple.name = new_name_apple
+        reader_salesforce.name = new_name_salesforce
+        
+        self.assertTrue(
+            (reader_apple.name != init_name_apple) &
+            (reader_apple.name == new_name_apple)
+            )
+
+        self.assertTrue(
+            (reader_salesforce.name != init_name_salesforce) &
+            (reader_salesforce.name == new_name_salesforce)
+        )
+

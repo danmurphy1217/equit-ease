@@ -2,6 +2,7 @@ import unittest
 
 from equit_ease.parser.parse import Parser
 
+__status__ = "up_to_date"
 
 class TestParserMethods(unittest.TestCase):
     def setUp(self):

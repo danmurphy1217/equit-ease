@@ -122,7 +122,7 @@ class Reader:
         the chart.
 
         :param self -> ``Reader``:
-        :returns -> ``str``: the formatted URL used to retrieve the equities chart data from yahoo finance.
+        :returns True -> ``bool``:
         """
         base_chart_url = Constants.yahoo_finance_base_chart_url
         base_params = Constants.chart_url_base_params

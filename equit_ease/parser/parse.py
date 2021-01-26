@@ -93,7 +93,7 @@ class ChartParser(Parser):
     #!TODO: Neither of these are necessary...
 
     @staticmethod
-    def standardize(item_to_standardize: List[float | None]) -> List[float]:
+    def standardize(item_to_standardize: List[float or int or None]) -> List[float or int]:
         """
         retrieves the mean of the items in the list (after removing none types),
         then replaces none types with the mean
@@ -131,20 +131,18 @@ class ChartParser(Parser):
             keys_to_extract, json_data_for_extraction
         )
 
-        print(equity_chart_data_struct)
-
         return (
-            self._standardize(self._extract_data_from(equity_chart_data_struct, "low")),
-            self._standardize(
+            self.standardize(self._extract_data_from(equity_chart_data_struct, "low")),
+            self.standardize(
                 self._extract_data_from(equity_chart_data_struct, "high")
             ),
-            self._standardize(
+            self.standardize(
                 self._extract_data_from(equity_chart_data_struct, "open")
             ),
-            self._standardize(
+            self.standardize(
                 self._extract_data_from(equity_chart_data_struct, "close")
             ),
-            self._standardize(
+            self.standardize(
                 self._extract_data_from(equity_chart_data_struct, "volume")
             ),
             self._extract_data_from(
