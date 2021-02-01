@@ -105,9 +105,9 @@ class ArgsHandler:
                     name.strip() for name in equity_names_list
                 ]
 
-    @staticmethod
+
     def _setup_dir_structure(
-        dir_path: Path, list_file_path: Path, answers: PyInquirer.prompt
+        self, dir_path: Path, list_file_path: Path, answers: PyInquirer.prompt
     ) -> bool:
         """
         make .equit_ease folder in $HOME dir.
@@ -383,7 +383,7 @@ class ArgsHandler:
                         "default": ",".join(equities)
                     }
                 ]
-            result = prompt(user_input, style=None).get('Selected_List', None)
+            result = prompt(user_input, style=None).get('Updated_Equities', None)
 
             return result
         
@@ -422,10 +422,11 @@ class ArgsHandler:
 
             
             updated_equity_list = display_equities_in_list(user_config.find_match())
+
             user_config.equities = ",".join(self.cleaner(updated_equity_list.split(",")))
             
             updated_file_lines = update_file()
-
+            print(updated_file_lines)
             write_to_file(updated_file_lines)
 
         else:
