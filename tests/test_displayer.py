@@ -51,11 +51,6 @@ class TestDisplayer(unittest.TestCase):
             self.displayer.set_formatting("intra day range", ["split", "capitalize"]),
             "Intra Day Range"
         )
-    
-        print(self.assertEqual(
-            self.displayer.set_formatting("intra day range", ["bold"]),
-            "\033[1m" + "intra day range" + "\033[0m"
-        ))
 
     def test_set_formatting_errant(self):
         """
