@@ -166,11 +166,12 @@ class TrendsDisplayer(Displayer):
 class QuoteDisplayer(Displayer):
     """contains methods used solely for the displayment of quote data."""
 
-    def tabularize(self: QuoteDisplayer) -> str:
+    def tabularize(self: QuoteDisplayer) -> List[str]:
         """
         str representation of the quote meta-data.
 
         :param self -> ``QuoteDisplayer``:
+        :returns ``List[str]``:
         """
         dataclass_as_dict = dataclasses.asdict(self.data)
 
@@ -259,23 +260,3 @@ class QuoteDisplayer(Displayer):
             formatted_row = build_column_separators(row, padding_size)
             formatted_col = build_row_separators(formatted_row)
             return formatted_col, formatted_row
-
-    def __repr__(self, key: str, value: Any) -> str:
-        """
-        builds a string representation of a key-value pair of EquityMeta.
-
-        :param key -> ``str``: a key from an EquityMeta object.
-        :param value -> ``str``: a value associated with ``key``.
-
-        :returns result -> ``str``: a string representation of the key-value pair.
-
-        :example:
-            1.
-                >>> __repr__('hello_world', 'hi!')
-                    Hello World: *hi!* # the key is split at '_' and capitalized, the value is underlined and bolded (color not shown).
-                                 ---
-        """
-        formatted_key = self.set_formatting(key, ["split", "capitalize", "bold"])
-        formatted_value = self.set_formatting(value, ["color", "bold", "underline"])
-        result = self.set_formatting(f"{formatted_key}: {formatted_value}\n", "align")
-        return result
