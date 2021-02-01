@@ -9,6 +9,7 @@ from equit_ease.parser.parse import QuoteParser
 
 __status__ = "up_to_date"
 
+
 def read_quote_fixture(fpath: str):
     fixture_file_path = os.path.join(os.path.dirname(__file__), fpath)
     with open(fixture_file_path, "r") as quote_fixture:
