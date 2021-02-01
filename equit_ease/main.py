@@ -426,7 +426,6 @@ class ArgsHandler:
             user_config.equities = ",".join(self.cleaner(updated_equity_list.split(",")))
             
             updated_file_lines = update_file()
-            print(updated_file_lines)
             write_to_file(updated_file_lines)
 
         else:
