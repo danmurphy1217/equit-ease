@@ -132,4 +132,6 @@ class TestUserConfigParser(unittest.TestCase):
         """
         equities = self.parser.find_match()
 
-        self.assertEqual(equities, ["CRM", "AAPL", "GME", "MSFT", "AXP"])
+        self.assertEqual(
+            equities, ["CRM","AAPL","GME","MSFT","AXP"]
+        )

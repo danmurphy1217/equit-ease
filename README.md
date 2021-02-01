@@ -1,7 +1,30 @@
 # equit-ease
+Access up-to-date price data for any of your favorite stocks from the command line
 
-Access up-to-date pricing, volume, and chart-based data for any valid company name or ticker symbol. This project is under rapid development and is updated daily. Release information will be specified in the coming weeks.
+## Who is this Project For?
+This project is for you If you enjoy following day-to-day movements in the market, want to stay up-to-date on the latest price trends, and spend a majority of your time working in the terminal.
 
-This project is for you if:
-- you enjoy following the markets, and pay attention to how current events influence short-term pricing and volume
-- you spend a majority of your time in the terminal, and want a sleek command-line utility to access recent pricing, volume, and chart data
+## Getting Started
+### Installation
+Currently, you can install the CLI with `brew` or `pip`.
+### With Brew
+Initial Installation:
+```shell
+>>> brew tap danmurphy1217/equit-ease
+>>> brew install danmurphy1217/equit-ease/equit-ease
+```
+Installing Updates:
+```shell
+>>> brew tap danmurphy1217/equit-ease
+>>> brew upgrade danmurphy1217/equit-ease/equit-ease
+```
+### With Pip
+```shell
+>>> python3 -m venv venv # setup virtual env...
+>>> source venv/bin/activate 
+>>> pip install EquitEase
+```
+### Verifying Installation
+```shell
+>>> equity --version # or equity -v
+```
