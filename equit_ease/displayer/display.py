@@ -61,7 +61,7 @@ class TrendsDisplayer(Displayer):
         :returns result -> ``float``: the percentage change.
         """
         if not (isinstance(start_value, (int, float)) and \
-            isinstance(start_value, (int, float)) and \
+            isinstance(end_value, (int, float)) and \
             isinstance(num_decimal_places, int)
         ):
             raise ArgumentError(None, message="start_value and end_value must be `int` or `float` type, and num_decimal_places must be `int`.")
