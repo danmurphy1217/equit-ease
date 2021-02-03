@@ -5,7 +5,8 @@ from tests import (
     test_chart_parser,
     test_user_config_parser,
     test_quote_displayer,
-    test_displayer
+    test_displayer,
+    test_trends_displayer
 )
 import unittest
 from types import ModuleType
@@ -22,3 +23,4 @@ instantiate_test(test_chart_parser)
 instantiate_test(test_user_config_parser)
 instantiate_test(test_quote_displayer)
 instantiate_test(test_displayer)
+instantiate_test(test_trends_displayer)
