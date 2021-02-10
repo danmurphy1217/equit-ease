@@ -1,5 +1,6 @@
-from equit_ease.main import run
+from equit_ease.main import main
+import asyncio
 import sys
 
 
-sys.exit(run())
+sys.exit(asyncio.run(main()))
