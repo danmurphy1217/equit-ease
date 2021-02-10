@@ -73,7 +73,7 @@ class TrendsDisplayer(Displayer):
                 result = round(percent_chage_formula, num_decimal_places)
             return result
 
-    def build_historical_price_trends(self, instance_var_to_access: str) -> str:
+    async def build_historical_price_trends(self, instance_var_to_access: str) -> str:
         """
         Given a valid class instance variable, retrieve it and use it's
         value to send a GET request to yahoo finance.
@@ -137,13 +137,14 @@ class TrendsDisplayer(Displayer):
 
         return result
 
-    def get_trends(self, *trends):
+    async def get_trends(self, *trends):
         """
         get percentage changes for each provided arg in ``trends``.
         """
         price_trends = list()
         for trend in trends:
-            price_trends.append(self.build_historical_price_trends(trend))
+            result = await self.build_historical_price_trends(trend)
+            price_trends.append(result)
         return price_trends
 
     def display(self, percentage_change: float, timeframe_descriptor: str) -> None:
