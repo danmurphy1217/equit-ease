@@ -441,7 +441,7 @@ class ArgsHandler:
             updated_file_lines = update_file()
             write_to_file(updated_file_lines)
 
-async def main():
+def main():
     """main function that is executed when a command is triggered."""
     base_parser = argparse.ArgumentParser(
         description="The easiest way to access data about your favorite stocks from the command line.",
@@ -465,7 +465,7 @@ async def main():
             parser.error(f"Unrecognized Argument: `{args.config}`.")
 
     elif args.name:
-        await args_handler.handle_equity()
+        asyncio.run(args_handler.handle_equity())
 
     elif args.list:
 
@@ -477,7 +477,7 @@ async def main():
             with open(lists_file_path, "r") as f:
                 file_contents_lines = f.read().splitlines()
 
-            await args_handler.handle_list(file_contents_lines)
+            asyncio.run(args_handler.handle_list(file_contents_lines))
 
     elif args.update:
         with open(lists_file_path, "r") as f:
@@ -490,4 +490,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()
