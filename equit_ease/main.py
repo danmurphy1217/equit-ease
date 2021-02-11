@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 import argparse
-from equit_ease.datatypes import equity_meta
+import asyncio
 from typing import List
 from PyInquirer import prompt
 import os, sys, signal
@@ -203,7 +203,7 @@ class ArgsHandler:
         else:
             self.add_to_lists(config_file_path, equities_for_list)
 
-    def handle_equity(self):
+    async def handle_equity(self):
         """
         if the ``--equity`` or ``-e`` flags are specified, the equity name that
         is provided is used to perform a reverse lookup. The first result from that
@@ -222,7 +222,7 @@ class ArgsHandler:
             helper function that displays the options matching
             the equity value passed to --name | -n.
             """
-            long_name, ticker, choices = reader.get_equity_company_data(
+            _, _, choices = reader.get_equity_company_data(
                     force=self.args_data.force
             )
             questions = [
@@ -294,7 +294,7 @@ class ArgsHandler:
             equity_three_months_percentage_change,
             equity_one_month_percentage_change,
             equity_five_days_percentage_change,
-        ) = trends_displayer.get_trends(*trends_to_retrieve)
+        ) = await trends_displayer.get_trends(*trends_to_retrieve)
 
         for row in table:
             print(row)
@@ -314,7 +314,7 @@ class ArgsHandler:
             ), "1 day"
         )
     
-    def handle_list(self: ArgsHandler, files_contents: List[str]):
+    async def handle_list(self: ArgsHandler, files_contents: List[str]):
         equity_list_name = self.args_data.list
         
         user_config = UserConfigParser(equity_list_name, files_contents)
@@ -339,11 +339,10 @@ class ArgsHandler:
             equities_to_search = user_config.find_match()
 
             for equity in equities_to_search:
-                # FIXME: async
                 new_args_handler = ArgsHandler(
                     argparse.Namespace(name=equity, force="True")
                 )
-                new_args_handler.handle_equity()
+                await new_args_handler.handle_equity()
 
     @verify
     def display_lists(self: ArgsHandler, equity_list_names: List[str]) -> str:
@@ -442,7 +441,7 @@ class ArgsHandler:
             updated_file_lines = update_file()
             write_to_file(updated_file_lines)
 
-def run():
+async def main():
     """main function that is executed when a command is triggered."""
     base_parser = argparse.ArgumentParser(
         description="The easiest way to access data about your favorite stocks from the command line.",
@@ -466,7 +465,7 @@ def run():
             parser.error(f"Unrecognized Argument: `{args.config}`.")
 
     elif args.name:
-        args_handler.handle_equity()
+        await args_handler.handle_equity()
 
     elif args.list:
 
@@ -478,7 +477,7 @@ def run():
             with open(lists_file_path, "r") as f:
                 file_contents_lines = f.read().splitlines()
 
-            args_handler.handle_list(file_contents_lines)
+            await args_handler.handle_list(file_contents_lines)
 
     elif args.update:
         with open(lists_file_path, "r") as f:
@@ -491,4 +490,4 @@ def run():
 
 
 if __name__ == '__main__':
-    run()
+    asyncio.run(main())
