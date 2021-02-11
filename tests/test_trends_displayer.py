@@ -1,5 +1,6 @@
 import unittest
 import argparse
+import asyncio
 
 from equit_ease.displayer.display import TrendsDisplayer
 from equit_ease.reader.read import Reader
@@ -158,11 +159,12 @@ class TestTrendsDisplayer(unittest.TestCase):
         ]
 
         for instance_var in non_private_class_instance_variables:
+            result = asyncio.run(self.trends_displayer_tick.build_historical_price_trends(instance_var))
             self.assertIsInstance(
-                self.trends_displayer_tick.build_historical_price_trends(instance_var),
+                result,
                 (int, float)
             )
             self.assertEqual(
-                self.trends_displayer_tick.build_historical_price_trends(instance_var),
-                self.trends_displayer_tick.get_trends(instance_var)[0]
+                result,
+                asyncio.run(self.trends_displayer_tick.get_trends(instance_var))[0]
             )
