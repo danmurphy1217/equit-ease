@@ -16,7 +16,7 @@ from equit_ease.displayer.display import QuoteDisplayer, TrendsDisplayer
 from equit_ease.utils.decorators import verify
 
 
-__equity_version__="0.0.7"
+__equity_version__="0.0.8"
 __python_version__="3.9.0"
 
 # TODO: start 
