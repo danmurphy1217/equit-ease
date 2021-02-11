@@ -12,7 +12,7 @@ setuptools.setup(
     version= version,
     url="https://github.com/danmurphy1217/equit-ease",
     entry_points={
-        "console_scripts": ['equity=equit_ease.main:run']
+        "console_scripts": ['equity=equit_ease.main:main']
     },
     description = "The easiest way to retrieve equity data from the command line. Search Stocks, Options, Cryptocurrencies and other digital assets, and more in a manner of seconds.",
     long_description=long_description,
