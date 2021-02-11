@@ -5,7 +5,7 @@ from __future__ import annotations
 from argparse import ArgumentError
 import re
 import dataclasses
-from typing import Any, List
+from typing import List
 import datetime
 
 from equit_ease.parser.parse import Parser, ChartParser
