@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 from typing import Dict, Any
-import requests
+import requests, aiohttp
 
 from equit_ease.utils.Constants import Constants
 
@@ -25,7 +25,7 @@ class Reader:
         super().__init__()
         self.equity = equity
 
-    def _get(self, y_finance_formatted_url: str) -> Dict[str, Any]:
+    async def _get(self, y_finance_formatted_url: str, session: aiohttp.ClientSession) -> Dict[str, Any]:
         """
         private method which sends the GET request to yahoo finance,
         ensures the response is accurate, and, upon validation, returns it.
@@ -33,10 +33,11 @@ class Reader:
         :param y_finance_formatted_url -> ``str``: formatted Yahoo Finance URL (
             see ``build_equity_url`` for what the formatted URL should look like.
         )
+        :param session -> ``aiohttp.ClientSession``: a aiohttp ClientSession object to be used for the requests.
 
         :returns result -> ``Dict[str, Any]``: JSON response object from yahoo finance.
         """
-        response = requests.get(y_finance_formatted_url)
+        response = session.request("GET", y_finance_formatted_url)
         response.raise_for_status()
 
         result = response.json()
@@ -257,7 +258,7 @@ class Reader:
         """
         return self._get(self.quote_url)
 
-    def get_equity_company_data(self: Reader, **kwargs) -> Dict[str, Any]:
+    async def get_equity_company_data(self: Reader, **kwargs) -> Dict[str, Any]:
         """
         the 'equity' value passed upon initialization is used to perform a
         'reverse lookup'.
@@ -271,7 +272,8 @@ class Reader:
         :param self -> ``Reader``:
         :returns result -> ``Dict[str, Any]``: Dict containing short name and ticker symbol data.
         """
-        json_response = self._get(self.company_url)
+        async with aiohttp.ClientSession() as session:
+            json_response = self._get(self.company_url, session)
 
         def extract_longname(data):
             """extract 'longname' from JSON object."""
