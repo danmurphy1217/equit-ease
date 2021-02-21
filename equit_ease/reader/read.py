@@ -256,7 +256,7 @@ class Reader:
         """
         return self._get(self.quote_url)
 
-    def get_equity_company_data(self: Reader, **kwargs) -> Dict[str, Any]:
+    async def get_equity_company_data(self: Reader, **kwargs) -> Dict[str, Any]:
         """
         the 'equity' value passed upon initialization is used to perform a
         'reverse lookup'.
@@ -270,8 +270,6 @@ class Reader:
         :param self -> ``Reader``:
         :returns result -> ``Dict[str, Any]``: Dict containing short name and ticker symbol data.
         """
-        json_response = self._get(self.company_url)
-
         def extract_longname(data):
             """extract 'longname' from JSON object."""
             return self._extract_data_from(data, "longname")
@@ -286,6 +284,10 @@ class Reader:
             for items in data:
                 choices.append(items["symbol"])
             return choices
+
+        async with aiohttp.ClientSession() as session:
+            json_response = self._get(self.company_url, session)
+
 
         long_name = extract_longname(json_response["quotes"][0])
         ticker = extract_ticker(json_response["quotes"][0])
