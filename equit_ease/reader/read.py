@@ -4,7 +4,6 @@
 from __future__ import annotations
 from typing import Dict, Any
 import requests, aiohttp
-import json
 
 from equit_ease.utils.Constants import Constants
 
@@ -40,10 +39,9 @@ class Reader:
         """
         response = session.request("GET", y_finance_formatted_url)
 
-        result = await response.text()
-        jsonified_data = json.loads(result)
+        result = await response.json()
 
-        return jsonified_data
+        return result
 
     @staticmethod
     def _extract_data_from(json_data: Dict[str, Any], key_to_extract: str) -> Any:
