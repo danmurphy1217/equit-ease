@@ -4,6 +4,7 @@
 from __future__ import annotations
 from typing import Dict, Any
 import requests, aiohttp
+import json
 
 from equit_ease.utils.Constants import Constants
 
@@ -38,11 +39,11 @@ class Reader:
         :returns result -> ``Dict[str, Any]``: JSON response object from yahoo finance.
         """
         response = session.request("GET", y_finance_formatted_url)
-        response.raise_for_status()
 
-        result = response.json()
+        result = await response.text()
+        jsonified_data = json.loads(result)
 
-        return result
+        return jsonified_data
 
     @staticmethod
     def _extract_data_from(json_data: Dict[str, Any], key_to_extract: str) -> Any:
