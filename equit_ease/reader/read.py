@@ -240,21 +240,23 @@ class Reader:
             return True
         raise ValueError("Search returned no results.")
 
-    def get_equity_chart_data(self: Reader) -> str:
+    async def get_equity_chart_data(self: Reader) -> str:
         """
         calls the _get() private method.
 
         :returns -> ``Dict[str, Any]``: JSON object response from Yahoo Finance
         """
-        return self._get(self.chart_base_url)
+        async with aiohttp.ClientSession() as session:
+            return await self._get(self.chart_base_url, session)
 
-    def get_equity_quote_data(self: Reader) -> str:
+    async def get_equity_quote_data(self: Reader) -> str:
         """
         calls the _get() private method.
 
         :returns -> ``Dict[str, Any]``: JSON object response from Yahoo Finance
         """
-        return self._get(self.quote_url)
+        async with aiohttp.ClientSession() as session:
+            return await self._get(self.quote_url, session)
 
     async def get_equity_company_data(self: Reader, **kwargs) -> Dict[str, Any]:
         """
@@ -286,7 +288,7 @@ class Reader:
             return choices
 
         async with aiohttp.ClientSession() as session:
-            json_response = self._get(self.company_url, session)
+            json_response = await self._get(self.company_url, session)
 
 
         long_name = extract_longname(json_response["quotes"][0])
