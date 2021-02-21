@@ -37,8 +37,7 @@ class Reader:
 
         :returns result -> ``Dict[str, Any]``: JSON response object from yahoo finance.
         """
-        response = session.request("GET", y_finance_formatted_url)
-
+        response = await session.request("GET", y_finance_formatted_url)
         result = await response.json()
 
         return result
@@ -257,7 +256,7 @@ class Reader:
         """
         return self._get(self.quote_url)
 
-    async def get_equity_company_data(self: Reader, **kwargs) -> Dict[str, Any]:
+    def get_equity_company_data(self: Reader, **kwargs) -> Dict[str, Any]:
         """
         the 'equity' value passed upon initialization is used to perform a
         'reverse lookup'.
@@ -271,8 +270,7 @@ class Reader:
         :param self -> ``Reader``:
         :returns result -> ``Dict[str, Any]``: Dict containing short name and ticker symbol data.
         """
-        async with aiohttp.ClientSession() as session:
-            json_response = self._get(self.company_url, session)
+        json_response = self._get(self.company_url)
 
         def extract_longname(data):
             """extract 'longname' from JSON object."""
