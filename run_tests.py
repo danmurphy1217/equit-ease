@@ -12,7 +12,11 @@ import unittest
 from types import ModuleType
 
 def instantiate_test(module_name: ModuleType) -> None:
-    """load tests from the passed module"""
+    """
+    load tests from the passed module and run them.
+    
+    :param module_name -> ``str``: the name of a module that contains python unit tests.
+    """
     MODULE = unittest.TestLoader().loadTestsFromModule(module_name)
     unittest.TextTestRunner().run(MODULE)
 
