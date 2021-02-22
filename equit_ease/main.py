@@ -343,10 +343,6 @@ class ArgsHandler:
             await asyncio.gather(
                 *(ArgsHandler(argparse.Namespace(name=equity, force="True")).handle_equity() for equity in equities_to_search)
             )
-            #! replaced the below loop with the above asyncio.gather call
-            # for equity in equities_to_search:
-                # new_args_handler = ArgsHandler(argparse.Namespace(name=equity, force="True"))
-                # await new_args_handler.handle_equity()
 
     @verify
     def display_lists(self: ArgsHandler, equity_list_names: List[str], action: str) -> str:
@@ -448,10 +444,8 @@ class ArgsHandler:
 def main():
     """main function that is executed when a command is triggered."""
     base_parser = argparse.ArgumentParser(
-        description="The easiest way to access data about your favorite stocks from the command line.",
-        formatter_class=argparse.RawTextHelpFormatter,
-        # FIXME: decide what to do with default help... Do I want to handle that internally?
-        # add_help=False
+        description="The easiest way to access data about your favorite stocks, crypto, and other assets from the command line.",
+        formatter_class=argparse.RawTextHelpFormatter
     )
     parser = init_parser(parser=base_parser)
     args = parser.parse_args()

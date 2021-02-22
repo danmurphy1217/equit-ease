@@ -8,7 +8,7 @@ from typing import Tuple
 @dataclass
 class EquityMeta:
     """
-    Intermediary data structure utilized for the transportation of Equity Quote metadata
+    data structure utilized for the storage of Equity Quote metadata
     during the execution of the program. This data is used to display useful information
     about a stock (bid, ask, open, close, etc...) in the terminal.
     """

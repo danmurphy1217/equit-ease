@@ -35,10 +35,6 @@ class Formatter:
             return Colors.GREEN + strinigified_value + Colors.END
 
     @staticmethod
-    def set_size_for():
-        return
-
-    @staticmethod
     def underline(a_value):
         return Colors.UNDERLINE + str(a_value) + Colors.END
 
