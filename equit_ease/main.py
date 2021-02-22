@@ -237,7 +237,7 @@ class ArgsHandler:
      
             return equity_name
 
-        def handle_force():
+        async def handle_force():
             """
             used to handle the ``--force`` / ``-f`` flags. If the flag is set
             to True, the first ticker returned from the reverse lookup is used.
@@ -257,7 +257,7 @@ class ArgsHandler:
                     force="True")
                 return long_name, ticker
             else:
-                long_name, ticker = reader.get_equity_company_data(
+                long_name, ticker = await reader.get_equity_company_data(
                     force=self.args_data.force
                 )
                 return long_name, ticker
@@ -265,12 +265,12 @@ class ArgsHandler:
         reader = Reader(self.args_data.name)
         reader.build_company_lookup_url()
 
-        long_name, ticker = handle_force()
+        long_name, ticker = await handle_force()
 
         reader.set_ticker_and_name_props_to(ticker, long_name)
         reader.build_urls()
 
-        equity_quote_data = reader.get_data()
+        equity_quote_data = await reader.get_data()
 
         quote_parser = QuoteParser(
             equity=reader.equity, data=equity_quote_data)
@@ -308,6 +308,7 @@ class ArgsHandler:
             equity_three_months_percentage_change, "3 months")
         trends_displayer.display(equity_one_month_percentage_change, "1 month")
         trends_displayer.display(equity_five_days_percentage_change, "1 week")
+
         trends_displayer.display(
             trends_displayer.get_percentage_change(
                 int(quote_data.close), int(quote_data.price), 2
@@ -323,7 +324,8 @@ class ArgsHandler:
             string_of_all_formatted_list_names ) = user_config.format_equity_lists()
 
         if equity_list_name == "*":
-            user_config.list_name = self.display_lists(equity_list_names)
+            user_config.list_name = self.display_lists(equity_list_names, "View")
+
 
         (
             list_of_formatted_list_names,
@@ -338,14 +340,16 @@ class ArgsHandler:
         else:
             equities_to_search = user_config.find_match()
 
-            for equity in equities_to_search:
-                new_args_handler = ArgsHandler(
-                    argparse.Namespace(name=equity, force="True")
-                )
-                await new_args_handler.handle_equity()
+            await asyncio.gather(
+                *(ArgsHandler(argparse.Namespace(name=equity, force="True")).handle_equity() for equity in equities_to_search)
+            )
+            #! replaced the below loop with the above asyncio.gather call
+            # for equity in equities_to_search:
+                # new_args_handler = ArgsHandler(argparse.Namespace(name=equity, force="True"))
+                # await new_args_handler.handle_equity()
 
     @verify
-    def display_lists(self: ArgsHandler, equity_list_names: List[str]) -> str:
+    def display_lists(self: ArgsHandler, equity_list_names: List[str], action: str) -> str:
         """
         utilized to display all user-configured lists.
 
@@ -356,7 +360,7 @@ class ArgsHandler:
                 {
                     "type": "list",
                     "name": "Selected_List",
-                    "message": "Select Which List to Edit:",
+                    "message": f"Select The List You Want To {action}:",
                     "choices": equity_list_names,
                 }
             ]
@@ -417,7 +421,7 @@ class ArgsHandler:
 
         if equity_list_name == "*":
             # no input provided
-            user_config.list_name = self.display_lists(equity_list_names)
+            user_config.list_name = self.display_lists(equity_list_names, "Update")
 
             
             updated_equity_list = display_equities_in_list(user_config.find_match())
