@@ -191,7 +191,6 @@ class Reader:
         :returns -> ``str``: the formatted URL used to retrieve equity meta-data from yahoo finance.
         """
         base_quote_url = Constants.yahoo_finance_base_quote_url
-        # TODO: this could be more robust based off args that can be passed via command-line
         result = base_quote_url + f"?symbols={self.__ticker}"
 
         self.quote_url = result
