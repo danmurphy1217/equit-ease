@@ -7,6 +7,7 @@ import re
 import dataclasses
 from typing import List
 import datetime
+import aiohttp
 
 from equit_ease.parser.parse import Parser, ChartParser
 from equit_ease.utils.Constants import Constants
@@ -84,8 +85,12 @@ class TrendsDisplayer(Displayer):
         """
 
         attr_data = getattr(self, instance_var_to_access, None)
+        
         if (attr_data) and (re.match(r"^(https|http)", attr_data)):
-            get_request_response = self._get(attr_data)
+
+            async with aiohttp.ClientSession() as session:
+                get_request_response = await self._get(attr_data, session)
+
             filtered_response_data = get_request_response["chart"]["result"][0]
 
             daily_close_data = ChartParser.standardize(
