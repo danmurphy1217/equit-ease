@@ -11,7 +11,7 @@ class TestTrendsDisplayer(unittest.TestCase):
     def setUp(self):
         def set_up_reader_co(reader: Reader) -> Reader:
             reader.build_company_lookup_url()
-            long_name, ticker = reader.get_equity_company_data(force=True)
+            long_name, ticker = asyncio.run(reader.get_equity_company_data(force=True))
             reader.ticker = ticker
             reader.name = long_name
 
@@ -21,7 +21,7 @@ class TestTrendsDisplayer(unittest.TestCase):
 
         def set_up_reader_tick(reader: Reader) -> Reader:
             reader.build_company_lookup_url()
-            long_name, ticker = reader.get_equity_company_data(force=True)
+            long_name, ticker = asyncio.run(reader.get_equity_company_data(force=True))
             reader.ticker = ticker
             reader.name = long_name
 

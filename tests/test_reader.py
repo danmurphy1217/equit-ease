@@ -1,6 +1,7 @@
 import unittest
-from requests.exceptions import HTTPError
 import re
+import asyncio
+import aiohttp
 
 from equit_ease.reader.read import Reader
 from equit_ease.utils.Constants import Constants
@@ -16,7 +17,7 @@ class TestReaderMethods(unittest.TestCase):
 
         def set_up_reader_co(reader: Reader) -> Reader:
             reader.build_company_lookup_url()
-            long_name, ticker = reader.get_equity_company_data(force=True)
+            long_name, ticker = asyncio.run(reader.get_equity_company_data(force=True))
             reader.ticker = ticker
             reader.name = long_name
 
@@ -26,7 +27,7 @@ class TestReaderMethods(unittest.TestCase):
 
         def set_up_reader_tick(reader: Reader) -> Reader:
             reader.build_company_lookup_url()
-            long_name, ticker = reader.get_equity_company_data(force=True)
+            long_name, ticker = asyncio.run(reader.get_equity_company_data(force=True))
             reader.ticker = ticker
             reader.name = long_name
 
@@ -72,7 +73,7 @@ class TestReaderMethods(unittest.TestCase):
         """test case #1 for get_equity_chart_data() in reader/read.py -> pass"""
         reader = self.reader_co
 
-        equity_chart_data = reader.get_equity_chart_data()
+        equity_chart_data = asyncio.run(reader.get_equity_chart_data())
 
         # check some of the response data...
         self.assertEqual(list(equity_chart_data.keys()), ["chart"])
@@ -90,19 +91,19 @@ class TestReaderMethods(unittest.TestCase):
             reader = Reader(ticker_to_search)
 
             reader.build_company_lookup_url()
-            long_name, ticker = reader.get_equity_company_data(force=True)
+            long_name, ticker = asyncio.run(reader.get_equity_company_data(force=True))
             reader.ticker = ticker
             reader.name = long_name
 
             reader.build_equity_chart_url()
-            reader.get_equity_chart_data()
+            asyncio.run(reader.get_equity_chart_data())
             return reader
 
     def test_get_equity_quote_data_pass(self):
         """test case #1 for get_equity_quote_data() -> pass"""
         reader = self.reader_co
 
-        equity_quote_data = reader.get_equity_quote_data()
+        equity_quote_data = asyncio.run(reader.get_equity_quote_data())
 
         # check some of the response data
         self.assertEqual(list(equity_quote_data.keys()), ["quoteResponse"])
@@ -132,19 +133,23 @@ class TestReaderMethods(unittest.TestCase):
             reader = Reader(ticker_to_search)
 
             reader.build_company_lookup_url()
-            long_name, ticker = reader.get_equity_company_data(force=True)
+            long_name, ticker = asyncio.run(reader.get_equity_company_data(force=True))
             reader.ticker = ticker
             reader.name = long_name
 
-            reader.get_equity_quote_data()
+            asyncio.run(reader.get_equity_quote_data())
+        
+    async def _request(self, url: str, reader: Reader):
+        """"""
+
+        async with aiohttp.ClientSession(raise_for_status=True) as session:
+            return await reader._get(url, session)
 
     def test_private_get_pass(self):
         """test case #1 for call private method directly -> pass."""
         reader = self.reader_co
 
-        chart_data_response = reader._get(
-            Constants.yahoo_finance_base_chart_url + reader.ticker
-        )
+        chart_data_response = asyncio.run(self._request(Constants.yahoo_finance_base_chart_url + reader.ticker, self.reader_co))
 
         self.assertTrue(chart_data_response["chart"]["error"] is None)
         self.assertTrue(
@@ -163,10 +168,12 @@ class TestReaderMethods(unittest.TestCase):
         """
         ticker_to_search = "invalid name..."
 
-        with self.assertRaises(HTTPError):
+        with self.assertRaises(aiohttp.client_exceptions.ClientResponseError):
 
             reader = Reader(ticker_to_search)
-            reader._get(Constants.yahoo_finance_base_chart_url + ticker_to_search)
+            print(asyncio.run(self._request(Constants.yahoo_finance_base_chart_url + ticker_to_search, reader)))
+            asyncio.run(self._request(Constants.yahoo_finance_base_chart_url + ticker_to_search, reader))
+
 
     def test_get_equity_company_data(self):
         """
@@ -178,13 +185,13 @@ class TestReaderMethods(unittest.TestCase):
         If no values are returned, a ``ValueError`` is thrown.
         """
         reader = self.reader_co
-        company_equity_data_one = reader.get_equity_company_data(force=True)
+        company_equity_data_one = asyncio.run(reader.get_equity_company_data(force=True))
 
         self.assertTrue(company_equity_data_one[0] == reader.name)
         self.assertTrue(company_equity_data_one[1] == reader.ticker)
 
         reader_two = self.reader_tick
-        company_equity_data_two = reader_two.get_equity_company_data(force=True)
+        company_equity_data_two = asyncio.run(reader_two.get_equity_company_data(force=True))
 
         self.assertTrue(company_equity_data_two[0] == reader_two.name)
         self.assertTrue(company_equity_data_two[1] == reader_two.ticker)
