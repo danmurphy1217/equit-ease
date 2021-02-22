@@ -25,6 +25,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     packages= setuptools.find_packages(),
-    install_requires = ['PyInquirer==1.0.3', 'requests==2.25.1'],
-    python_requires = ">= 3.7"
+    install_requires = ['PyInquirer==1.0.3', 'requests==2.25.1', 'aiohttp==3.7.3'],
+    python_requires = ">= 3.7" # uses dataclasses
 )
