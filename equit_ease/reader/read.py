@@ -25,7 +25,8 @@ class Reader:
         super().__init__()
         self.equity = equity
 
-    async def _get(self, y_finance_formatted_url: str, session: aiohttp.ClientSession) -> Dict[str, Any]:
+    @staticmethod
+    async def _get(y_finance_formatted_url: str, session: aiohttp.ClientSession) -> Dict[str, Any]:
         """
         private method which sends the GET request to yahoo finance,
         ensures the response is accurate, and, upon validation, returns it.
@@ -83,14 +84,14 @@ class Reader:
         self.build_equity_quote_url()
         self.build_equity_chart_url()
 
-    def get_data(self):
+    async def get_data(self):
         """
         public interface used to call the private methods that retrieve
         quote and chart-related datapoints.
 
         :param self -> ``Reader``:
         """
-        equity_quote_data = self.get_equity_quote_data()
+        equity_quote_data = await self.get_equity_quote_data()
 
         return equity_quote_data
 
@@ -290,7 +291,7 @@ class Reader:
         async with aiohttp.ClientSession() as session:
             json_response = await self._get(self.company_url, session)
 
-
+        # blocking operations, but are very quick (extracting from JSON)
         long_name = extract_longname(json_response["quotes"][0])
         ticker = extract_ticker(json_response["quotes"][0])
 
