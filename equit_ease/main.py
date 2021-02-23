@@ -217,19 +217,19 @@ class ArgsHandler:
         :param self -> ``Reader``:
         """
         @verify
-        def display_equity_options():
+        async def display_equity_options():
             """
             helper function that displays the options matching
             the equity value passed to --name | -n.
             """
-            _, _, choices = reader.get_equity_company_data(
+            _, _, choices = await reader.get_equity_company_data(
                     force=self.args_data.force
             )
             questions = [
                     {
                         "type": "list",
                         "name": "Equity_Name",
-                        "message": "Select The Correct Equity:",
+                        "message": "Select The Correct Asset:",
                         "choices": choices,
                     }
                 ]
@@ -248,12 +248,12 @@ class ArgsHandler:
             """
             if self.args_data.force == "False":
 
-                equity_name = display_equity_options()
+                equity_name = await display_equity_options()
 
                 # update equity name based off selection, build new URL, and repeat process
                 reader.equity = equity_name
                 reader.build_company_lookup_url()
-                long_name, ticker = reader.get_equity_company_data(
+                long_name, ticker = await reader.get_equity_company_data(
                     force="True")
                 return long_name, ticker
             else:
@@ -324,7 +324,7 @@ class ArgsHandler:
             string_of_all_formatted_list_names ) = user_config.format_equity_lists()
 
         if equity_list_name == "*":
-            user_config.list_name = self.display_lists(equity_list_names, "View")
+            user_config.list_name = self.display_lists(equity_list_names, "Run")
 
 
         (
